@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -15,6 +16,9 @@ import (
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
+	"github.com/olekukonko/tablewriter"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 type WalletMonitor struct {
@@ -153,6 +157,26 @@ func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, err
 		WalletAddress: wallet.String(),
 		TokenAccounts: make(map[string]TokenAccountInfo),
 		LastScanned:   time.Now(),
+	}
+
+	// First get native SOL balance
+	balanceResult, err := w.client.GetBalance(
+		context.Background(),
+		wallet,
+		rpc.CommitmentFinalized,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get SOL balance: %w", err)
+	}
+
+	// Add native SOL balance as a special token account
+	if balanceResult != nil && balanceResult.Value > 0 {
+		walletData.TokenAccounts["So11111111111111111111111111111111111111112"] = TokenAccountInfo{
+			Balance:     balanceResult.Value,
+			LastUpdated: time.Now(),
+			Symbol:      "SOL",
+			Decimals:    9,
+		}
 	}
 
 	// Use the retry version instead
@@ -425,9 +449,22 @@ type tokenHolding struct {
 	Symbol   string
 }
 
+// Helper function to format large numbers with commas and proper decimals
+func formatLargeNumber(value float64) string {
+	p := message.NewPrinter(language.English)
+	if value >= 1_000_000_000 {
+		return p.Sprintf("%.2fB", value/1_000_000_000)
+	} else if value >= 1_000_000 {
+		return p.Sprintf("%.2fM", value/1_000_000)
+	} else if value >= 1_000 {
+		return p.Sprintf("%.2fK", value/1_000)
+	}
+	return p.Sprintf("%.2f", value)
+}
+
 func (m *WalletMonitor) DisplayWalletOverview(walletDataMap map[string]*WalletData) {
-	fmt.Println("\nWallet Holdings Overview:")
-	fmt.Println("------------------------")
+	fmt.Println("\n🔍 Wallet Holdings Overview")
+	fmt.Println("=======================")
 
 	// Collect all unique mints
 	mints := make([]string, 0)
@@ -443,14 +480,34 @@ func (m *WalletMonitor) DisplayWalletOverview(walletDataMap map[string]*WalletDa
 	}
 
 	for _, wallet := range m.wallets {
-		fmt.Printf("📍 %s\n", wallet.String())
+		fmt.Printf("\n📍 Wallet: %s\n", wallet.String())
 		walletData, exists := walletDataMap[wallet.String()]
 		if !exists {
 			continue
 		}
 
+		// Create the table
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Token", "Balance", "USD Value", "Price"})
+		table.SetBorder(false)
+		table.SetColumnAlignment([]int{
+			tablewriter.ALIGN_LEFT,
+			tablewriter.ALIGN_RIGHT,
+			tablewriter.ALIGN_RIGHT,
+			tablewriter.ALIGN_RIGHT,
+		})
+		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+		table.SetColumnSeparator("│")
+		table.SetHeaderColor(
+			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
+			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
+			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
+			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
+		)
+
 		// Convert token holdings to slice for sorting
 		holdings := make([]tokenHolding, 0)
+		totalUSDValue := 0.0
 
 		for mint, info := range walletData.TokenAccounts {
 			// Get price data from Jupiter
@@ -467,7 +524,9 @@ func (m *WalletMonitor) DisplayWalletOverview(walletDataMap map[string]*WalletDa
 				Mint:     mint,
 				Amount:   float64(info.Balance),
 				USDValue: usdValue,
+				Symbol:   info.Symbol,
 			})
+			totalUSDValue += usdValue
 		}
 
 		// Sort by USD value descending
@@ -475,23 +534,47 @@ func (m *WalletMonitor) DisplayWalletOverview(walletDataMap map[string]*WalletDa
 			return holdings[i].USDValue > holdings[j].USDValue
 		})
 
-		// Display top 5 holdings
-		for i := 0; i < min(5, len(holdings)); i++ {
+		// Add rows to the table
+		p := message.NewPrinter(language.English)
+		for i := 0; i < min(10, len(holdings)); i++ {
 			holding := holdings[i]
-			shortMint := holding.Mint[:8] + "..."
+			actualAmount := holding.Amount / math.Pow(10, float64(9))
+			priceData, exists := m.priceService.GetPrice(holding.Mint)
 
-			if holding.USDValue > 0 {
-				actualAmount := holding.Amount / math.Pow(10, float64(9)) // assuming 9 decimals for now
-				fmt.Printf("   • %s: %.2fM ($%.2f)\n", shortMint, actualAmount, holding.USDValue)
+			var priceStr string
+			if exists {
+				priceStr = p.Sprintf("$%.4f", priceData.Price)
 			} else {
-				actualAmount := holding.Amount / math.Pow(10, float64(9))
-				fmt.Printf("   • %s: %.2fM\n", shortMint, actualAmount)
+				priceStr = "N/A"
 			}
+
+			table.Append([]string{
+				holding.Symbol,
+				formatLargeNumber(actualAmount),
+				p.Sprintf("$%s", formatLargeNumber(holding.USDValue)),
+				priceStr,
+			})
 		}
 
-		if len(holdings) > 5 {
-			fmt.Printf("   ... and %d more tokens\n\n", len(holdings)-5)
+		// Add a summary row
+		if len(holdings) > 10 {
+			table.Append([]string{
+				p.Sprintf("... and %d more", len(holdings)-10),
+				"",
+				"",
+				"",
+			})
 		}
+
+		// Add total value row
+		table.Append([]string{
+			"Total Value",
+			"",
+			p.Sprintf("$%s", formatLargeNumber(totalUSDValue)),
+			"",
+		})
+
+		table.Render()
 	}
 }
 
