@@ -28,13 +28,11 @@ jobs:
       # Install all required dependencies for mkdocs.yml
       - name: Install MkDocs and plugins
         run: |
-          pip install mkdocs-material==9.5.9
+          pip install mkdocs-material>=9.4.0
           pip install pillow cairosvg
           pip install mkdocs-minify-plugin
           pip install mkdocs-git-revision-date-localized-plugin
-          pip install mkdocs-social-plugin
           pip install pymdown-extensions
-          pip install mkdocs-material-extensions
 
           # Create required directories if they don't exist
           mkdir -p docs/assets/css docs/assets/js
