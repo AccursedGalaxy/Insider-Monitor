@@ -52,4 +52,8 @@ jobs:
           fi
 
       - name: Deploy documentation
-        run: mkdocs gh-deploy --force
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+
+          mkdocs gh-deploy --force --config-file mkdocs.yml
