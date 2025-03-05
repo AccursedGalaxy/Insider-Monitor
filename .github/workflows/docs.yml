@@ -66,8 +66,8 @@ jobs:
           # Deploy with debug options
           mkdocs gh-deploy --force --verbose
 
-          - name: Debug Material Theme Installation
-          run: |
+      - name: Debug Material Theme Installation
+        run: |
           # Check if Material theme is installed correctly
           pip show mkdocs-material
 
