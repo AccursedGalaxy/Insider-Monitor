@@ -92,7 +92,7 @@ extra:
       link: https://discord.gg/7vY9ZBPdya
   analytics:
     provider: google
-    property: ${GOOGLE_ANALYTICS_KEY}
+    property: !!str ${GOOGLE_ANALYTICS_KEY}
 
 extra_javascript:
   - assets/js/extra.js
@@ -112,8 +112,8 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.emoji:
-      emoji_index: "material.extensions.emoji.twemoji"
-      emoji_generator: "material.extensions.emoji.to_svg"
+      emoji_index: "pymdownx.emoji.twemoji"
+      emoji_generator: "pymdownx.emoji.to_svg"
   - pymdownx.tabbed:
       alternate_style: true
   - tables
