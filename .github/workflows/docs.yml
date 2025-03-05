@@ -68,13 +68,13 @@ jobs:
 
           - name: Debug Material Theme Installation
           run: |
-            # Check if Material theme is installed correctly
-            pip show mkdocs-material
+          # Check if Material theme is installed correctly
+          pip show mkdocs-material
 
-            # Create test directory to verify Material theme files
-            mkdir -p overrides
-            echo '<p>Theme debug info:</p>{% if config.theme.name == "material" %}<p>Material theme is active</p>{% else %}<p>Material theme is NOT active</p>{% endif %}' > overrides/main.html
+          # Create test directory to verify Material theme files
+          mkdir -p overrides
+          echo '<p>Theme debug info:</p>{% if config.theme.name == "material" %}<p>Material theme is active</p>{% else %}<p>Material theme is NOT active</p>{% endif %}' > overrides/main.html
 
-            # List content of docs directory
-            echo "Content of docs directory:"
-            find docs -type f | sort
+          # List content of docs directory
+          echo "Content of docs directory:"
+          find docs -type f | sort
