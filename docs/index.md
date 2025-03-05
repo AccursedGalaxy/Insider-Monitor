@@ -10,9 +10,31 @@ Welcome to the documentation for Solana Insider Monitor, a tool for monitoring S
 
 ## Getting Started
 
-- [Installation Guide](./installation.md)
-- [Quick Start](./quick-start.md)
-- [Configuration Guide](./configuration.md)
+<div class="doc-card-container">
+  <div class="doc-card">
+    <h3>Installation</h3>
+    <p>Learn how to install and set up Solana Insider Monitor on your system.</p>
+    <div class="doc-card-footer">
+      <a href="./installation.md" class="card-link">Installation Guide</a>
+    </div>
+  </div>
+
+  <div class="doc-card">
+    <h3>Quick Start</h3>
+    <p>Get up and running quickly with a basic configuration.</p>
+    <div class="doc-card-footer">
+      <a href="./quick-start.md" class="card-link">Quick Start Guide</a>
+    </div>
+  </div>
+
+  <div class="doc-card">
+    <h3>Configuration</h3>
+    <p>Learn about all configuration options and how to customize your setup.</p>
+    <div class="doc-card-footer">
+      <a href="./configuration.md" class="card-link">Configuration Guide</a>
+    </div>
+  </div>
+</div>
 
 ## Features
 
@@ -28,42 +50,68 @@ Welcome to the documentation for Solana Insider Monitor, a tool for monitoring S
 
 ### User Guide
 
-- [Installation](./installation.md) - How to install the application
-- [Configuration](./configuration.md) - Configuration options and examples
-- [Web Interface Guide](./web-interface.md) - How to use the web interface
-- [Alert Configuration](./alerts.md) - How to configure alerts and notifications
+<div class="doc-card-container">
+  <div class="doc-card">
+    <h3>Configuration</h3>
+    <p>Configuration options and examples</p>
+    <div class="doc-card-footer">
+      <a href="./configuration.md" class="card-link">View Guide</a>
+    </div>
+  </div>
+
+  <div class="doc-card">
+    <h3>Web Interface</h3>
+    <p>How to use the web interface</p>
+    <div class="doc-card-footer">
+      <a href="./web-interface.md" class="card-link">View Guide</a>
+    </div>
+  </div>
+</div>
 
 ### Developer Documentation
 
-- [API Reference](./api.md) - Comprehensive API documentation
-- [Authentication](./authentication.md) - Authentication and security
-- [Development Guide](./development.md) - Contributing to the project
-- [Project Structure](./project-structure.md) - Overview of the codebase
+<div class="doc-card-container">
+  <div class="doc-card">
+    <h3>API Reference</h3>
+    <p>Comprehensive API documentation</p>
+    <div class="doc-card-footer">
+      <a href="./api.md" class="card-link">View Reference</a>
+    </div>
+  </div>
+
+  <div class="doc-card">
+    <h3>Authentication</h3>
+    <p>Authentication and security</p>
+    <div class="doc-card-footer">
+      <a href="./authentication.md" class="card-link">View Guide</a>
+    </div>
+  </div>
+</div>
 
 ## Current Features and Roadmap
 
 Solana Insider Monitor is under active development. Here's the current status:
 
 ### Phase 1: API and Configuration Management (Complete)
-- ✅ REST API endpoints
-- ✅ Configuration management via API
-- ✅ Authentication for sensitive operations
-- ✅ Web interface for monitoring
+- <span class="checkmark">REST API endpoints</span>
+- <span class="checkmark">Configuration management via API</span>
+- <span class="checkmark">Authentication for sensitive operations</span>
+- <span class="checkmark">Web interface for monitoring</span>
 
 ### Phase 2: Refactor Backend/Frontend (Planned)
-- 🔄 Separate backend and frontend services
-- 🔄 Enhanced API communication
-- 🔄 WebSockets for real-time updates
+- <span class="pending">Separate backend and frontend services</span>
+- <span class="pending">Enhanced API communication</span>
+- <span class="pending">WebSockets for real-time updates</span>
 
 ### Phase 3: Database Persistence (Planned)
-- 🔄 Database storage for configuration
-- 🔄 User management and roles
-- 🔄 Migration from file-based storage
+- <span class="pending">Database storage for configuration</span>
+- <span class="pending">User management and roles</span>
+- <span class="pending">Migration from file-based storage</span>
 
 ### Phase 4: Enhanced Features (Planned)
-- 🔄 Advanced dashboard controls
-- 🔄 Monitoring statistics and historical data
-- 🔄 Alert management in UI
+- <span class="pending">Advanced dashboard controls</span>
+- <span class="pending">Monitoring statistics and historical data</span>
+- <span class="pending">Alert management in UI</span>
 
 ## Community
 

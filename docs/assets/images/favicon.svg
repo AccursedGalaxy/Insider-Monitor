@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .primary { fill: #5664d2; }
+    .secondary { fill: #02bfe7; }
+  </style>
+
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="white" stroke="#5664d2" stroke-width="1"/>
+
+  <!-- Solana logo stylized element -->
+  <path d="M8,12 L24,12 L24,14 L10,20 L24,20 L24,22 L8,22 L8,20 L22,14 L8,14 Z" class="primary"/>
+
+  <!-- Monitor element -->
+  <rect x="10" y="6" width="12" height="8" rx="1" class="secondary" opacity="0.6"/>
+</svg>

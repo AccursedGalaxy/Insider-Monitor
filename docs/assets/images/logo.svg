@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .logo-text { font-family: 'Arial', sans-serif; font-weight: bold; }
+    .primary { fill: #5664d2; }
+    .secondary { fill: #02bfe7; }
+  </style>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="white" stroke="#5664d2" stroke-width="2"/>
+
+  <!-- Solana logo stylized element -->
+  <path d="M50,80 L150,80 L150,90 L60,130 L150,130 L150,140 L50,140 L50,130 L140,90 L50,90 Z" class="primary"/>
+
+  <!-- Monitor element -->
+  <rect x="60" y="40" width="80" height="50" rx="5" class="secondary" opacity="0.6"/>
+  <rect x="70" y="50" width="60" height="30" fill="white"/>
+
+  <!-- Text -->
+  <text x="100" y="170" text-anchor="middle" class="logo-text primary" font-size="20">Insider Monitor</text>
+</svg>

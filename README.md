@@ -2,6 +2,8 @@
 
 A tool for monitoring Solana wallet activities, detecting balance changes, and receiving real-time alerts.
 
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://accursedgalaxy.github.io/Insider-Monitor/)
+
 ## Community
 
 Join our Discord community to:
@@ -191,12 +193,14 @@ The binary will be available in the `bin` directory.
 
 ## Documentation
 
-For more detailed documentation, see the [Documentation](./docs/index.md):
+📚 **[View the full documentation](https://accursedgalaxy.github.io/Insider-Monitor/)** for detailed guides, API reference, and more.
 
-- [API Reference](./docs/api.md)
-- [Configuration Guide](./docs/configuration.md)
-- [Authentication](./docs/authentication.md)
-- [Web Interface Guide](./docs/web-interface.md)
+The documentation covers:
+- [Installation Guide](https://accursedgalaxy.github.io/Insider-Monitor/installation)
+- [Configuration Guide](https://accursedgalaxy.github.io/Insider-Monitor/configuration)
+- [API Reference](https://accursedgalaxy.github.io/Insider-Monitor/api)
+- [Authentication](https://accursedgalaxy.github.io/Insider-Monitor/authentication)
+- [Web Interface Guide](https://accursedgalaxy.github.io/Insider-Monitor/web-interface)
 
 ## Contributing
 
