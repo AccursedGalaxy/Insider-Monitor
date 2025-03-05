@@ -1,0 +1,40 @@
+theme: jekyll-theme-cayman
+title: Solana Insider Monitor
+description: Documentation for Solana Insider Monitor - a tool for monitoring Solana wallet activities and balance changes
+baseurl: "/insider-monitor"
+url: "https://accursedgalaxy.github.io"
+markdown: kramdown
+permalink: pretty
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+
+# Navigation links
+navigation:
+  - title: Home
+    url: /
+  - title: Installation
+    url: /installation
+  - title: Configuration
+    url: /configuration
+  - title: API Reference
+    url: /api
+  - title: Authentication
+    url: /authentication
+  - title: Web Interface
+    url: /web-interface
+
+# GitHub information
+github:
+  is_project_page: true
+  repository_url: https://github.com/accursedgalaxy/insider-monitor
+  repository_name: insider-monitor
+  owner_name: accursedgalaxy
+  owner_url: https://github.com/accursedgalaxy
+
+# Google Analytics
+google_analytics:
+
+# Enable or disable heading anchors
+heading_anchors: true

@@ -21,6 +21,9 @@ Join our Discord community to:
 - 🔔 Discord integration for notifications
 - 💾 Persistent storage of wallet data
 - 🛡️ Graceful handling of network interruptions
+- 🌐 Web interface for monitoring and configuration
+- 🔑 Authentication for secure API access
+- 🔄 REST API for programmatic access and integration
 
 ## Quick Start
 
@@ -88,7 +91,7 @@ cp config.example.json config.json
 
 ### Running the Monitor
 
-#### Normal Mode
+#### Console Mode
 ```bash
 go run cmd/monitor/main.go
 ```
@@ -98,9 +101,19 @@ go run cmd/monitor/main.go
 go run cmd/monitor/main.go -test
 ```
 
+#### Web Interface Mode
+```bash
+go run cmd/monitor/main.go -web
+```
+
 #### Custom Config File
 ```bash
 go run cmd/monitor/main.go -config path/to/config.json
+```
+
+#### Custom Web Port
+```bash
+go run cmd/monitor/main.go -web -port 9090
 ```
 
 ### Alert Levels
@@ -117,6 +130,57 @@ The monitor stores wallet data in the `./data` directory to:
 - Track historical changes
 - Handle network interruptions gracefully
 
+## Web Interface
+
+The application includes a web interface for easy monitoring and configuration. When running with the `-web` flag, you can access the interface at `http://localhost:8080` (or your custom port).
+
+### Features:
+- Dashboard overview of all monitored wallets
+- Detailed view of each wallet's token balances
+- Configuration management through a user-friendly interface
+- Real-time data refresh
+
+### Authentication:
+The web interface and API use JWT authentication for secure access. The default credentials are:
+- Username: `admin`
+- Password: `admin` (can be changed via `ADMIN_PASSWORD` environment variable)
+
+## API Documentation
+
+The application provides a REST API for programmatic access and integration with other systems.
+
+### Public Endpoints:
+
+- `GET /api/wallets` - Get all monitored wallet data
+- `GET /api/wallets/{address}` - Get details for a specific wallet
+- `POST /api/refresh` - Trigger an immediate refresh of wallet data
+
+### Protected Endpoints (require authentication):
+
+- `GET /api/admin/config` - Get current configuration
+- `PUT /api/admin/config` - Update configuration
+- `POST /api/admin/wallets` - Add a new wallet to monitor
+- `DELETE /api/admin/wallets/{address}` - Remove a wallet from monitoring
+
+### Authentication:
+
+Authentication is handled via JWT tokens. To obtain a token:
+
+```bash
+curl -X POST http://localhost:8080/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}'
+```
+
+Use the returned token in subsequent requests:
+
+```bash
+curl -X GET http://localhost:8080/api/admin/config \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+For more detailed API documentation, see the [API Documentation](./docs/api.md).
+
 ### Building from Source
 
 ```bash
@@ -124,6 +188,15 @@ make build
 ```
 
 The binary will be available in the `bin` directory.
+
+## Documentation
+
+For more detailed documentation, see the [Documentation](./docs/index.md):
+
+- [API Reference](./docs/api.md)
+- [Configuration Guide](./docs/configuration.md)
+- [Authentication](./docs/authentication.md)
+- [Web Interface Guide](./docs/web-interface.md)
 
 ## Contributing
 
