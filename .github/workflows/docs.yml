@@ -56,4 +56,25 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
 
-          mkdocs gh-deploy --force --config-file mkdocs.yml
+          # Build the documentation first to verify it works
+          mkdocs build --verbose
+
+          # Check if any assets were generated
+          echo "Checking for CSS and JS files..."
+          find site -name "*.css" -o -name "*.js"
+
+          # Deploy with debug options
+          mkdocs gh-deploy --force --verbose
+
+          - name: Debug Material Theme Installation
+          run: |
+            # Check if Material theme is installed correctly
+            pip show mkdocs-material
+
+            # Create test directory to verify Material theme files
+            mkdir -p overrides
+            echo '<p>Theme debug info:</p>{% if config.theme.name == "material" %}<p>Material theme is active</p>{% else %}<p>Material theme is NOT active</p>{% endif %}' > overrides/main.html
+
+            # List content of docs directory
+            echo "Content of docs directory:"
+            find docs -type f | sort

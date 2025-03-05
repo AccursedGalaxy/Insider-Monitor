@@ -3,9 +3,12 @@ site_description: Monitor Solana wallet activities, track token balance changes,
 site_url: https://accursedgalaxy.github.io/insider-monitor/
 repo_url: https://github.com/accursedgalaxy/insider-monitor
 repo_name: accursedgalaxy/insider-monitor
+site_dir: site
+use_directory_urls: false
 
 theme:
   name: material
+  custom_dir: overrides
   features:
     - navigation.tabs
     - navigation.sections
