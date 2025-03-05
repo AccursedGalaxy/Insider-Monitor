@@ -1,46 +1,24 @@
 title: Solana Insider Monitor
 description: Documentation for monitoring Solana wallet activities and balance changes
 remote_theme: just-the-docs/just-the-docs@v0.7.0
-color_scheme: light
-baseurl: "/Insider-Monitor" # the subpath of your site, e.g. /blog
-url: "https://accursedgalaxy.github.io" # the base hostname & protocol for your site
 
-# Theme configuration
-logo: "/assets/images/logo.svg"
-favicon_ico: "/assets/images/favicon.svg"
+# Set a baseurl if your site is running in a virtual subdirectory
+baseurl: "/Insider-Monitor"
+url: "https://accursedgalaxy.github.io"
 
-# CSS
-sass:
-  style: :compressed # or :expanded for debugging
-  sass_dir: assets/css
-
-# Enable or disable the site search
-search_enabled: true
-search:
-  heading_level: 3
-  previews: 3
-  preview_words_before: 5
-  preview_words_after: 10
-  tokenizer_separator: /[\s/]+/
-
-# Aux links for the upper right navigation
+# Auxiliary links for the upper right navigation
 aux_links:
   "View on GitHub":
     - "//github.com/accursedgalaxy/Insider-Monitor"
-
 aux_links_new_tab: true
 
-# Footer content
-footer_content: "Copyright &copy; 2023 AccursedGalaxy. Distributed under the <a href=\"https://github.com/accursedgalaxy/Insider-Monitor/blob/main/LICENSE\">MIT license.</a>"
+# Theme settings
+logo: "/assets/images/logo.svg"
+favicon_ico: "/assets/images/favicon.svg"
+color_scheme: light
 
-# Collections for website structure
-collections:
-  docs:
-    permalink: "/:collection/:path/"
-    output: true
-
-# Enable or disable heading anchors
-heading_anchors: true
+# Footer content appears at the bottom of every page's main content
+footer_content: "Copyright &copy; 2023 AccursedGalaxy. Distributed under the <a href=\"https://github.com/accursedgalaxy/Insider-Monitor/blob/main/LICENSE\">MIT license</a>"
 
 # Back to top link
 back_to_top: true
@@ -53,6 +31,16 @@ gh_edit_repository: "https://github.com/accursedgalaxy/Insider-Monitor"
 gh_edit_branch: "feat/web-ui"
 gh_edit_path: "docs/"
 
-# Google Analytics
+# Enable or disable the site search
+search_enabled: true
+
+# Enable or disable heading anchors
+heading_anchors: true
+
+# Google Analytics tracking ID
 ga_tracking:
 ga_tracking_anonymize_ip: true
+
+# Plugins
+plugins:
+  - jekyll-seo-tag

@@ -3,7 +3,17 @@ layout: home
 title: Home
 nav_order: 1
 permalink: /
-description: "Solana Insider Monitor - A tool for monitoring Solana wallet activities and balance changes"
+---
+
+# Solana Insider Monitor
+
+{: .fs-9 }
+A tool for monitoring Solana wallet activities and balance changes
+{: .fs-6 .fw-300 }
+
+[Get Started](./quick-start.html){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[View on GitHub](https://github.com/accursedgalaxy/Insider-Monitor){: .btn .fs-5 .mb-4 .mb-md-0 }
+
 ---
 
 ## Features
@@ -39,61 +49,17 @@ For detailed installation instructions, see the [Installation Guide](./installat
 
 ---
 
-## Guides
-
-<div class="card-grid">
-  <div class="card">
-    <h3>Installation Guide</h3>
-    <p>Step-by-step instructions for installing and setting up Solana Insider Monitor.</p>
-    <div class="card-footer">
-      <a href="./installation.html" class="btn btn-primary">Read More</a>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Quick Start Guide</h3>
-    <p>Get up and running quickly with a basic configuration.</p>
-    <div class="card-footer">
-      <a href="./quick-start.html" class="btn btn-primary">Read More</a>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Configuration Guide</h3>
-    <p>Learn about all configuration options and how to customize your setup.</p>
-    <div class="card-footer">
-      <a href="./configuration.html" class="btn btn-primary">Read More</a>
-    </div>
-  </div>
-</div>
-
 ## Documentation
 
-<div class="card-grid">
-  <div class="card">
-    <h3>API Reference</h3>
-    <p>Comprehensive API documentation for developers.</p>
-    <div class="card-footer">
-      <a href="./api.html" class="btn btn-primary">View Reference</a>
-    </div>
-  </div>
+### Guides
+- [Installation Guide](./installation.html)
+- [Quick Start Guide](./quick-start.html)
+- [Configuration Guide](./configuration.html)
 
-  <div class="card">
-    <h3>Authentication</h3>
-    <p>Learn about authentication and security features.</p>
-    <div class="card-footer">
-      <a href="./authentication.html" class="btn btn-primary">View Guide</a>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Web Interface</h3>
-    <p>Learn how to use the web interface to monitor wallets and manage settings.</p>
-    <div class="card-footer">
-      <a href="./web-interface.html" class="btn btn-primary">View Guide</a>
-    </div>
-  </div>
-</div>
+### Reference
+- [API Reference](./api.html)
+- [Authentication](./authentication.html)
+- [Web Interface](./web-interface.html)
 
 ## Current Features and Roadmap
 
