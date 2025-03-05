@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Required for git-revision-date-localized plugin
 
       - uses: actions/setup-python@v4
         with:
@@ -25,12 +25,20 @@ jobs:
           key: ${{ github.ref }}
           path: .cache
 
-      - run: pip install mkdocs-material
-      - run: pip install pillow cairosvg
-      - run: pip install mkdocs-minify-plugin
-      - run: pip install mkdocs-git-revision-date-localized-plugin
-      - run: pip install mkdocs-social-plugin
-      - run: pip install pymdown-extensions
-      - run: pip install mkdocs-tags-plugin
+      # Install all required dependencies for mkdocs.yml
+      - name: Install MkDocs and plugins
+        run: |
+          pip install mkdocs-material
+          pip install pillow cairosvg
+          pip install mkdocs-minify-plugin
+          pip install mkdocs-git-revision-date-localized-plugin
+          pip install mkdocs-social-plugin
+          pip install pymdown-extensions
 
-      - run: mkdocs gh-deploy --force
+          # Set environment variable for Google Analytics if needed
+          if [ -n "${{ vars.GOOGLE_ANALYTICS_KEY }}" ]; then
+            echo "GOOGLE_ANALYTICS_KEY=${{ vars.GOOGLE_ANALYTICS_KEY }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy documentation
+        run: mkdocs gh-deploy --force
