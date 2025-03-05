@@ -5,7 +5,9 @@ go 1.23.2
 require (
 	github.com/gagliardetto/binary v0.8.0
 	github.com/gagliardetto/solana-go v1.12.0
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/gorilla/mux v1.8.1
+	github.com/joho/godotenv v1.5.1
 	golang.org/x/time v0.8.0
 )
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	bin "github.com/gagliardetto/binary"
@@ -16,10 +17,17 @@ import (
 )
 
 type WalletMonitor struct {
-	client      *rpc.Client
-	wallets     []solana.PublicKey
-	networkURL  string
-	isConnected bool
+	client       *rpc.Client
+	wallets      []solana.PublicKey
+	networkURL   string
+	isConnected  bool
+	mu           sync.RWMutex
+	ticker       *time.Ticker
+	scanInterval time.Duration
+	walletData   map[string]*WalletData
+	config       struct {
+		NetworkURL string
+	}
 }
 
 func NewWalletMonitor(networkURL string, wallets []string) (*WalletMonitor, error) {
@@ -280,4 +288,75 @@ func DetectChanges(oldData, newData map[string]*WalletData, significantChange fl
 	}
 
 	return changes
+}
+
+// UpdateScanInterval updates the scan interval
+func (m *WalletMonitor) UpdateScanInterval(interval time.Duration) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Update the interval
+	m.scanInterval = interval
+
+	// If you have a ticker, reset it
+	if m.ticker != nil {
+		m.ticker.Stop()
+		m.ticker = time.NewTicker(interval)
+	}
+}
+
+// AddWallet adds a wallet to monitor
+func (m *WalletMonitor) AddWallet(address string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Convert address to public key
+	pubKey, err := solana.PublicKeyFromBase58(address)
+	if err != nil {
+		return fmt.Errorf("invalid wallet address: %w", err)
+	}
+
+	// Check if wallet already exists
+	for _, wallet := range m.wallets {
+		if wallet.String() == address {
+			return nil // Already exists, no error
+		}
+	}
+
+	// Add to wallets list
+	m.wallets = append(m.wallets, pubKey)
+
+	// Initialize wallet data if needed
+	if m.walletData == nil {
+		m.walletData = make(map[string]*WalletData)
+	}
+
+	// Add wallet data entry
+	m.walletData[address] = &WalletData{
+		WalletAddress: address,
+		TokenAccounts: make(map[string]TokenAccountInfo),
+		LastScanned:   time.Time{},
+	}
+
+	return nil
+}
+
+// RemoveWallet removes a wallet from monitoring
+func (m *WalletMonitor) RemoveWallet(address string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Create a new slice without the removed wallet
+	var newWallets []solana.PublicKey
+	for _, wallet := range m.wallets {
+		if wallet.String() != address {
+			newWallets = append(newWallets, wallet)
+		}
+	}
+	m.wallets = newWallets
+
+	// Remove from wallet data
+	if m.walletData != nil {
+		delete(m.walletData, address)
+	}
 }

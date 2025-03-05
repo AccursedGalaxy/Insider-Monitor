@@ -15,6 +15,7 @@ import (
 	"github.com/accursedgalaxy/insider-monitor/internal/monitor"
 	"github.com/accursedgalaxy/insider-monitor/internal/storage"
 	"github.com/accursedgalaxy/insider-monitor/internal/web"
+	"github.com/joho/godotenv"
 )
 
 // WalletScanner interface defines the contract for wallet monitoring
@@ -23,6 +24,9 @@ type WalletScanner interface {
 }
 
 func main() {
+	// Load .env file if it exists
+	godotenv.Load()
+
 	testMode := flag.Bool("test", false, "Run in test mode with accelerated scanning")
 	configPath := flag.String("config", "config.json", "Path to configuration file")
 	webMode := flag.Bool("web", false, "Run with web UI")
@@ -68,7 +72,7 @@ func main() {
 		log.Println("Console alerts enabled")
 	}
 
-	// Parse scan interval
+	// Parse the scan interval
 	scanInterval, err := time.ParseDuration(cfg.ScanInterval)
 	if err != nil {
 		log.Printf("invalid scan interval '%s', using default of 1 minute", cfg.ScanInterval)
@@ -207,7 +211,7 @@ func runScan(scanner WalletScanner, alerter alerts.Alerter, previousData map[str
 			}
 
 			// Skip if balance is below minimum threshold
-			if tokenAccount.Balance < cfg.Alerts.MinimumBalance {
+			if float64(tokenAccount.Balance) < cfg.Alerts.MinimumBalance {
 				continue
 			}
 
@@ -252,7 +256,7 @@ func runScan(scanner WalletScanner, alerter alerts.Alerter, previousData map[str
 			}
 
 			// Skip if balance is below minimum threshold
-			if previousToken.Balance < cfg.Alerts.MinimumBalance {
+			if float64(previousToken.Balance) < cfg.Alerts.MinimumBalance {
 				continue
 			}
 

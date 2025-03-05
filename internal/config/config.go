@@ -6,16 +6,28 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"sync"
 
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
 type Config struct {
-	NetworkURL   string        `json:"network_url"`
-	Wallets      []string      `json:"wallets"`
-	ScanInterval string        `json:"scan_interval"`
-	Alerts       AlertConfig   `json:"alerts"`
-	Discord      DiscordConfig `json:"discord"`
+	NetworkURL   string   `json:"network_url"`
+	Wallets      []string `json:"wallets"`
+	ScanInterval string   `json:"scan_interval"`
+	Alerts       struct {
+		MinimumBalance    float64  `json:"minimum_balance"`
+		SignificantChange float64  `json:"significant_change"`
+		IgnoreTokens      []string `json:"ignore_tokens"`
+	} `json:"alerts"`
+	Discord struct {
+		Enabled    bool   `json:"enabled"`
+		WebhookURL string `json:"webhook_url"`
+		ChannelID  string `json:"channel_id"`
+	} `json:"discord"`
+	mu       sync.RWMutex `json:"-"` // Exclude from JSON
+	filepath string       `json:"-"` // Exclude from JSON
 }
 
 type AlertConfig struct {
@@ -51,12 +63,20 @@ func GetTestConfig() *Config {
 		NetworkURL:   rpc.DevNet_RPC,
 		Wallets:      TestWallets,
 		ScanInterval: "5s",
-		Alerts: AlertConfig{
+		Alerts: struct {
+			MinimumBalance    float64  `json:"minimum_balance"`
+			SignificantChange float64  `json:"significant_change"`
+			IgnoreTokens      []string `json:"ignore_tokens"`
+		}{
 			MinimumBalance:    1000,
 			SignificantChange: 0.05,
 			IgnoreTokens:      []string{},
 		},
-		Discord: DiscordConfig{
+		Discord: struct {
+			Enabled    bool   `json:"enabled"`
+			WebhookURL string `json:"webhook_url"`
+			ChannelID  string `json:"channel_id"`
+		}{
 			Enabled:    false,
 			WebhookURL: "",
 			ChannelID:  "",
@@ -76,8 +96,76 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
+	// Store the path
+	cfg.filepath = path
+
 	log.Printf("Loaded config: NetworkURL=%s, Wallets=%d, ScanInterval=%s",
 		cfg.NetworkURL, len(cfg.Wallets), cfg.ScanInterval)
 
 	return &cfg, nil
+}
+
+// Update updates the configuration with the provided update request
+func (c *Config) Update(update UpdateRequest) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Apply the update
+	if err := update.Apply(c); err != nil {
+		return err
+	}
+
+	// Save the updated configuration
+	return c.Save()
+}
+
+// Save saves the configuration to disk
+func (c *Config) Save() error {
+	log.Printf("DEBUG: Save method called")
+
+	// Use absolute path to config file
+	path := "config.json"
+	if c.filepath != "" {
+		path = c.filepath
+		log.Printf("DEBUG: Using stored filepath: %s", path)
+	} else {
+		// Get absolute path of the working directory
+		wd, err := os.Getwd()
+		if err == nil {
+			path = filepath.Join(wd, "config.json")
+			log.Printf("DEBUG: Using working directory path: %s", path)
+		}
+	}
+
+	// Marshal config to JSON
+	data, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		log.Printf("ERROR: Failed to marshal config: %v", err)
+		return fmt.Errorf("error marshaling config: %w", err)
+	}
+
+	// Print part of the JSON data
+	preview := string(data)
+	if len(preview) > 100 {
+		preview = preview[:100] + "..."
+	}
+	log.Printf("DEBUG: About to write config data: %s", preview)
+
+	// Write file with explicit error handling
+	err = os.WriteFile(path, data, 0644)
+	if err != nil {
+		log.Printf("ERROR: Failed to write config file to %s: %v", path, err)
+		return fmt.Errorf("error writing config file: %w", err)
+	}
+
+	log.Printf("SUCCESS: Saved configuration to %s", path)
+
+	// Verify the file exists after writing
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Printf("ERROR: File does not exist after writing: %s", path)
+	} else {
+		log.Printf("DEBUG: Confirmed file exists: %s", path)
+	}
+
+	return nil
 }
