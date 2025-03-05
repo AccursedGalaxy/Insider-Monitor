@@ -6,26 +6,15 @@ permalink: /
 description: "Solana Insider Monitor - A tool for monitoring Solana wallet activities and balance changes"
 ---
 
-# Solana Insider Monitor
-{: .fs-9 }
-
-A powerful tool for monitoring Solana wallet activities, detecting balance changes, and receiving real-time alerts.
-{: .fs-6 .fw-300 }
-
-[Get Started](./quick-start.html){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[View on GitHub](https://github.com/accursedgalaxy/Insider-Monitor){: .btn .fs-5 .mb-4 .mb-md-0 }
-
----
-
 ## Features
 
-- Monitor multiple Solana wallets simultaneously
-- Track token balance changes
-- Real-time alerts for significant changes
-- Discord integration for notifications
-- Persistent storage of wallet data
-- Web interface for monitoring and configuration
-- REST API for programmatic access and integration
+- **Monitor multiple Solana wallets** simultaneously
+- **Track token balance changes** in real-time
+- **Real-time alerts** for significant changes
+- **Discord integration** for instant notifications
+- **Persistent storage** of wallet data
+- **Web interface** for monitoring and configuration
+- **REST API** for programmatic access and integration
 {: .mb-6 }
 
 ## Getting Started

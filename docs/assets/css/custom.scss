@@ -5,113 +5,307 @@ $solana-dark-blue: #3b4283;
 $solana-light-gray: #f5f6f8;
 $solana-medium-gray: #e0e0e0;
 $solana-dark-gray: #3d3d3d;
+$gradient-start: #5664d2;
+$gradient-end: #00bcd4;
 
-// Custom Styles
+// Enhanced Custom Styles
+
+// Global
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: $solana-dark-gray;
+}
+
+// Typography improvements
+h1, h2, h3, h4, h5, h6 {
+  color: $solana-dark-blue;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+  border-bottom: 1px solid $solana-medium-gray;
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  font-size: 1.4rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
 
 // Buttons
 .btn {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
   transition: all 0.2s ease-in-out;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  text-decoration: none !important;
 }
 
 .btn-primary {
   background-color: $solana-blue;
+  color: white !important;
+  border: none;
+  box-shadow: 0 4px 6px rgba(86, 100, 210, 0.2);
 
   &:hover {
     background-color: darken($solana-blue, 10%);
+    box-shadow: 0 4px 8px rgba(86, 100, 210, 0.3);
+    transform: translateY(-1px);
   }
 }
 
-// Navigation
-.site-header {
-  border-bottom: 1px solid $solana-medium-gray;
+// Just the Docs overrides
+.side-bar {
+  background-color: #f8f9fa;
+  border-right: 1px solid $solana-medium-gray;
+}
+
+.navigation-list-link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+
+  &:hover {
+    background-color: rgba($solana-blue, 0.05);
+  }
+
+  &.active {
+    background-color: rgba($solana-blue, 0.1);
+    color: $solana-dark-blue;
+    font-weight: 500;
+  }
+}
+
+// Main navigation
+.nav-list {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.nav-list-item {
+  margin: 0.25rem 0;
+}
+
+.nav-list .nav-list-item .nav-list-link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba($solana-blue, 0.05);
+    text-decoration: none;
+  }
+
+  &.active {
+    background-color: rgba($solana-blue, 0.1);
+    color: $solana-dark-blue;
+    font-weight: 500;
+  }
+}
+
+// Search improvements
+.search {
+  padding: 1rem 1.5rem;
+}
+
+.search-input {
+  border-radius: 6px;
+  border: 1px solid $solana-medium-gray;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: $solana-blue;
+    box-shadow: 0 0 0 3px rgba($solana-blue, 0.15);
+    outline: none;
+  }
+}
+
+// Enhanced header
+.main-header {
+  background: linear-gradient(135deg, $gradient-start, $gradient-end);
+  padding: 2.5rem 0;
+  margin-bottom: 2rem;
+  color: white;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .site-title {
-  font-weight: 600;
-  color: $solana-dark-blue;
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: white;
 }
 
-.nav-list .nav-list-item.active {
-  background-color: rgba($solana-blue, 0.1);
+.site-subtitle {
+  opacity: 0.9;
+  font-weight: 400;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
 }
 
-// Main content
-.main-content {
-  a {
-    text-decoration: none;
-    border-bottom: 1px solid rgba($solana-blue, 0.3);
+// Cards - enhanced
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
 
-    &:hover {
-      border-bottom-color: $solana-blue;
-      text-decoration: none;
-    }
+.card {
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 1.75rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &:hover {
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+    transform: translateY(-4px);
+    border-color: rgba(0,0,0,0.12);
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
+  h3 {
     color: $solana-dark-blue;
-    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
   }
 
-  h2 {
-    padding-bottom: 0.3em;
-    border-bottom: 1px solid $solana-medium-gray;
+  p {
+    color: $solana-dark-gray;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+  }
+
+  .card-footer {
+    margin-top: auto;
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: 0;
   }
 }
 
-// Code blocks
+// Code blocks with better styling
 div.highlighter-rouge {
-  border-radius: 4px;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  background-color: #f8f9fb;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 
   pre.highlight {
-    padding: 1em;
+    padding: 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-x: auto;
   }
 }
 
-// Tables
-table {
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-  margin-bottom: 1.5em;
-
-  tr:nth-child(even) {
-    background-color: darken($solana-light-gray, 2%);
-  }
-
-  th {
-    background-color: darken($solana-light-gray, 5%);
-    border-bottom: 1px solid $solana-medium-gray;
-    font-weight: 600;
-  }
-}
-
-// Lists
+// Main content improvements
 .main-content {
+  padding: 2.5rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+
+  a {
+    color: $solana-blue;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: darken($solana-blue, 10%);
+      text-decoration: underline;
+    }
+  }
+
   ul, ol {
+    padding-left: 1.5rem;
+
     li {
-      margin-bottom: 0.25em;
+      margin-bottom: 0.5rem;
+      line-height: 1.6;
+    }
+  }
+
+  table {
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border: 1px solid $solana-medium-gray;
+    width: 100%;
+    margin-bottom: 2rem;
+
+    th {
+      background-color: #f3f4f7;
+      border-bottom: 1px solid $solana-medium-gray;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafbfc;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
     }
   }
 }
 
-// Callouts
+// Better callouts
 .warning, .note, .important {
-  padding: 1em;
-  margin: 1.5em 0;
-  border-radius: 4px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  position: relative;
 
   &::before {
-    font-weight: bold;
+    font-weight: 600;
     display: block;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
   }
 }
 
 .warning {
-  background-color: #fff8e6;
-  border-left: 4px solid #f0ad4e;
+  background-color: #fff9e6;
+  border-left: 5px solid #f0ad4e;
 
   &::before {
     content: "⚠️ Warning";
@@ -120,8 +314,8 @@ table {
 }
 
 .note {
-  background-color: #e6f3ff;
-  border-left: 4px solid #5bc0de;
+  background-color: #e7f4ff;
+  border-left: 5px solid #5bc0de;
 
   &::before {
     content: "ℹ️ Note";
@@ -130,8 +324,8 @@ table {
 }
 
 .important {
-  background-color: #e6f9ff;
-  border-left: 4px solid $solana-teal;
+  background-color: #e6f7f9;
+  border-left: 5px solid $solana-teal;
 
   &::before {
     content: "🔔 Important";
@@ -139,109 +333,94 @@ table {
   }
 }
 
-// Cards
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5em;
-  margin: 2em 0;
-}
+// Enhanced footer
+.footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid $solana-medium-gray;
 
-.card {
-  border: 1px solid $solana-medium-gray;
-  border-radius: 4px;
-  padding: 1.5em;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  transition: all 0.2s ease-in-out;
-  display: flex;
-  flex-direction: column;
-
-  &:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
+  .footer-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
   }
 
   h3 {
-    margin-top: 0;
-    margin-bottom: 0.75em;
-    font-size: 1.2em;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: $solana-dark-blue;
   }
 
-  p {
-    flex-grow: 1;
-    margin-bottom: 1em;
-  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 
-  .card-footer {
-    margin-top: auto;
+    li {
+      margin-bottom: 0.5rem;
+
+      a {
+        color: $solana-dark-gray;
+        text-decoration: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: $solana-blue;
+        }
+      }
+    }
   }
 }
 
-// Search
-.search-input {
-  border-radius: 4px;
-  border: 1px solid $solana-medium-gray;
-
-  &:focus {
-    border-color: $solana-blue;
-    box-shadow: 0 0 0 0.2rem rgba($solana-blue, 0.25);
-  }
-}
-
-// Footer
-.site-footer {
-  margin-top: 4em;
-  padding-top: 2em;
-  border-top: 1px solid $solana-medium-gray;
-  color: lighten($solana-dark-gray, 20%);
-}
-
-// Responsive adjustments
+// Improvements for mobile
 @media (max-width: 800px) {
   .card-grid {
     grid-template-columns: 1fr;
   }
+
+  .main-content {
+    padding: 1.5rem;
+  }
+
+  .main-header {
+    padding: 2rem 1rem;
+  }
+
+  .site-title {
+    font-size: 2rem;
+  }
+
+  .site-subtitle {
+    font-size: 1rem;
+  }
+
+  .footer .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
 
-// Just the Docs specific overrides
-.side-bar {
-  background-color: $solana-light-gray;
-}
-
-.site-nav {
-  padding-top: 2rem;
-}
-
-.nav-list .nav-list-item .nav-list-link:hover {
-  background-color: rgba($solana-blue, 0.05);
-}
-
-.nav-list .nav-list-item .nav-list-link.active {
-  background-color: rgba($solana-blue, 0.1);
-  color: $solana-dark-blue;
-}
-
-.aux-links .aux-link {
-  color: $solana-blue;
-}
-
-.search-result-preview {
-  color: $solana-dark-gray;
-}
-
-.site-button:hover {
-  background-color: darken($solana-light-gray, 5%);
-}
-
-// Fix table overflow on mobile
-table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-// Logo sizing
+// Logo styling
 .site-logo {
   width: 100px;
   height: auto;
+  margin-bottom: 1rem;
+}
+
+// Home page specific styling
+.fs-9 {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1rem !important;
+}
+
+.fs-6 {
+  font-size: 1.2rem !important;
+  margin-bottom: 2rem !important;
+}
+
+.fw-300 {
+  font-weight: 400 !important;
+  color: lighten($solana-dark-gray, 10%);
 }
