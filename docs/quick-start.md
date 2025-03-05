@@ -1,12 +1,23 @@
 ---
 layout: default
 title: Quick Start Guide
+nav_order: 3
 description: Get started quickly with Solana Insider Monitor
 ---
 
 # Quick Start Guide
+{: .no_toc }
 
 This guide will help you get up and running with Solana Insider Monitor in just a few minutes.
+
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
 
 ## Prerequisites
 
@@ -84,7 +95,7 @@ curl -X GET http://localhost:8080/api/admin/config \
 
 ## Next Steps
 
-- [Configuration Guide](./configuration.md) - Learn about all configuration options
-- [Web Interface Guide](./web-interface.md) - Learn how to use the web interface
-- [API Reference](./api.md) - Explore the API for programmatic access
-- [Authentication](./authentication.md) - Learn about authentication and security
+- [Configuration Guide](./configuration.html) - Learn about all configuration options
+- [Web Interface Guide](./web-interface.html) - Learn how to use the web interface
+- [API Reference](./api.html) - Explore the API for programmatic access
+- [Authentication](./authentication.html) - Learn about authentication and security

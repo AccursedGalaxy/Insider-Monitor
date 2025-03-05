@@ -1,12 +1,23 @@
 ---
 layout: default
 title: Web Interface Guide
+nav_order: 7
 description: Guide to using the Solana Insider Monitor web interface
 ---
 
 # Web Interface Guide
+{: .no_toc }
 
-Solana Insider Monitor includes a web interface that provides a user-friendly way to monitor wallets, view token balances, and manage configuration. This guide explains how to use the web interface.
+This guide explains how to use the web interface of Solana Insider Monitor.
+
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
 
 ## Getting Started
 
@@ -154,3 +165,9 @@ The web interface is designed to work with modern browsers:
 ### Mobile Responsiveness
 
 The web interface is designed to be responsive and work well on mobile devices and tablets.
+
+## Related Resources
+
+- [API Reference](./api.html) - Complete API documentation
+- [Configuration Guide](./configuration.html) - Detailed configuration options
+- [Authentication Guide](./authentication.html) - Authentication and security information

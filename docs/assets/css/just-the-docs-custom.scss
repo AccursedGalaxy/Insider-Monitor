@@ -1,0 +1,245 @@
+@import "./color_schemes/light";
+
+// Theme color variables
+$solana-blue: #5664d2;
+$solana-teal: #02bfe7;
+$solana-dark-blue: #3b4283;
+$solana-light-gray: #f5f6f8;
+$solana-medium-gray: #e0e0e0;
+$solana-dark-gray: #3d3d3d;
+
+// Typography
+$body-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  Roboto, "Helvetica Neue", Arial, sans-serif;
+$mono-font-family: "SFMono-Regular", Menlo, Consolas, Monospace;
+$root-font-size: 16px;
+$body-line-height: 1.6;
+$content-line-height: 1.6;
+$body-heading-line-height: 1.3;
+
+// Colors
+$body-background-color: #fff;
+$body-heading-color: $solana-dark-blue;
+$body-text-color: $solana-dark-gray;
+$link-color: $solana-blue;
+$nav-child-link-color: $solana-blue;
+$sidebar-color: $solana-light-gray;
+$base-button-color: $solana-light-gray;
+$btn-primary-color: $solana-blue;
+$code-background-color: $solana-light-gray;
+$search-background-color: $solana-light-gray;
+$table-background-color: $solana-light-gray;
+$feedback-color: darken($sidebar-color, 3%);
+
+// Custom Styles
+
+// Buttons
+.btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background-color: $solana-blue;
+
+  &:hover {
+    background-color: darken($solana-blue, 10%);
+  }
+}
+
+// Navigation
+.site-header {
+  border-bottom: 1px solid $solana-medium-gray;
+}
+
+.site-title {
+  font-weight: 600;
+  color: $solana-dark-blue;
+}
+
+.navigation-list-item.active {
+  background-color: rgba($solana-blue, 0.1);
+}
+
+// Main content
+.main-content {
+  a {
+    text-decoration: none;
+    border-bottom: 1px solid rgba($solana-blue, 0.3);
+
+    &:hover {
+      border-bottom-color: $solana-blue;
+      text-decoration: none;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: $solana-dark-blue;
+    font-weight: 600;
+  }
+
+  h2 {
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid $solana-medium-gray;
+  }
+}
+
+// Code blocks
+.highlight {
+  border-radius: 4px;
+
+  pre.highlight {
+    padding: 1em;
+  }
+}
+
+// Tables
+table {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  margin-bottom: 1.5em;
+
+  tr:nth-child(even) {
+    background-color: darken($solana-light-gray, 2%);
+  }
+
+  th {
+    background-color: darken($solana-light-gray, 5%);
+    border-bottom: 1px solid $solana-medium-gray;
+    font-weight: 600;
+  }
+}
+
+// Lists
+.main-content {
+  ul, ol {
+    li {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+// Callouts
+.warning, .note, .important {
+  padding: 1em;
+  margin: 1.5em 0;
+  border-radius: 4px;
+
+  &::before {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5em;
+  }
+}
+
+.warning {
+  background-color: #fff8e6;
+  border-left: 4px solid #f0ad4e;
+
+  &::before {
+    content: "⚠️ Warning";
+    color: darken(#f0ad4e, 15%);
+  }
+}
+
+.note {
+  background-color: #e6f3ff;
+  border-left: 4px solid #5bc0de;
+
+  &::before {
+    content: "ℹ️ Note";
+    color: darken(#5bc0de, 15%);
+  }
+}
+
+.important {
+  background-color: #e6f9ff;
+  border-left: 4px solid $solana-teal;
+
+  &::before {
+    content: "🔔 Important";
+    color: darken($solana-teal, 15%);
+  }
+}
+
+// Cards
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5em;
+  margin: 2em 0;
+}
+
+.card {
+  border: 1px solid $solana-medium-gray;
+  border-radius: 4px;
+  padding: 1.5em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 0.75em;
+    font-size: 1.2em;
+  }
+
+  p {
+    flex-grow: 1;
+    margin-bottom: 1em;
+  }
+
+  .card-footer {
+    margin-top: auto;
+  }
+}
+
+// Search
+.search-input {
+  border-radius: 4px;
+  border: 1px solid $solana-medium-gray;
+
+  &:focus {
+    border-color: $solana-blue;
+    box-shadow: 0 0 0 0.2rem rgba($solana-blue, 0.25);
+  }
+}
+
+// Footer
+.site-footer {
+  margin-top: 4em;
+  padding-top: 2em;
+  border-top: 1px solid $solana-medium-gray;
+  color: lighten($solana-dark-gray, 20%);
+}
+
+// Responsive adjustments
+@media (max-width: 800px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site-nav, .site-header {
+    padding: 1em;
+  }
+}
+
+// Print styles
+@media print {
+  .site-header, .site-nav, .search, .site-footer {
+    display: none;
+  }
+
+  .main-content {
+    max-width: 100%;
+    padding: 0;
+  }
+}

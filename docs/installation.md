@@ -1,12 +1,23 @@
 ---
 layout: default
 title: Installation Guide
+nav_order: 2
 description: How to install and set up Solana Insider Monitor
 ---
 
 # Installation Guide
+{: .no_toc }
 
 This guide will walk you through the process of installing and setting up Solana Insider Monitor on your system.
+
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
 
 ## Prerequisites
 
@@ -62,7 +73,7 @@ Edit the `config.json` file to include your Solana RPC endpoint and wallet addre
 }
 ```
 
-For more detailed configuration options, see the [Configuration Guide](./configuration.md).
+For more detailed configuration options, see the [Configuration Guide](./configuration.html).
 
 ## Step 4: Build the Application
 
@@ -100,6 +111,6 @@ go run cmd/monitor/main.go -test
 
 ## Next Steps
 
-- [Configuration Guide](./configuration.md) - Learn about all configuration options
-- [Web Interface Guide](./web-interface.md) - Learn how to use the web interface
-- [API Reference](./api.md) - Explore the API for programmatic access
+- [Configuration Guide](./configuration.html) - Learn about all configuration options
+- [Web Interface Guide](./web-interface.html) - Learn how to use the web interface
+- [API Reference](./api.html) - Explore the API for programmatic access

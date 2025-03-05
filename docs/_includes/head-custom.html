@@ -1,0 +1,71 @@
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta property="og:title" content="{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }}{% endif %}">
+<meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+<meta property="og:image" content="{{ site.url }}/assets/images/solana-insider-preview.png">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ site.url }}{{ page.url }}">
+<meta property="twitter:title" content="{% if page.title %}{{ page.title }} | {{ site.title }}{% else %}{{ site.title }}{% endif %}">
+<meta property="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+<meta property="twitter:image" content="{{ site.url }}/assets/images/solana-insider-preview.png">
+
+<!-- Favicon -->
+<link rel="shortcut icon" type="image/x-icon" href="{{ site.baseurl }}/assets/images/favicon.svg">
+
+<!-- Custom JS -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Enable copy to clipboard for code blocks
+    document.querySelectorAll('pre.highlight').forEach(function(block) {
+      var button = document.createElement('button');
+      button.className = 'copy-button';
+      button.textContent = 'Copy';
+
+      button.addEventListener('click', function() {
+        var code = block.querySelector('code').textContent;
+        navigator.clipboard.writeText(code).then(function() {
+          button.textContent = 'Copied!';
+          setTimeout(function() {
+            button.textContent = 'Copy';
+          }, 2000);
+        }, function(error) {
+          button.textContent = 'Error';
+          console.error('Could not copy text: ', error);
+        });
+      });
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'highlight-wrapper';
+      block.parentNode.insertBefore(wrapper, block);
+      wrapper.appendChild(block);
+      wrapper.appendChild(button);
+    });
+  });
+</script>
+
+<!-- Custom CSS for highlight wrapper and copy button -->
+<style>
+  .highlight-wrapper {
+    position: relative;
+  }
+
+  .copy-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .copy-button:hover {
+    background: rgba(255, 255, 255, 1);
+  }
+</style>

@@ -1,0 +1,33 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg { fill: #5664d2; }
+    .accent { fill: #02bfe7; }
+    .title { font-family: 'Arial', sans-serif; font-weight: bold; font-size: 72px; fill: white; }
+    .subtitle { font-family: 'Arial', sans-serif; font-size: 36px; fill: white; opacity: 0.9; }
+    .logo-text { font-family: 'Arial', sans-serif; font-weight: bold; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1200" height="630" class="bg" />
+
+  <!-- Accent patterns -->
+  <circle cx="150" cy="150" r="300" class="accent" opacity="0.1" />
+  <circle cx="1050" cy="500" r="250" class="accent" opacity="0.1" />
+
+  <!-- Logo -->
+  <g transform="translate(200, 200) scale(1.5)">
+    <!-- Background circle -->
+    <circle cx="100" cy="100" r="90" fill="white" stroke="#5664d2" stroke-width="2"/>
+
+    <!-- Solana logo stylized element -->
+    <path d="M50,80 L150,80 L150,90 L60,130 L150,130 L150,140 L50,140 L50,130 L140,90 L50,90 Z" class="accent"/>
+
+    <!-- Monitor element -->
+    <rect x="60" y="40" width="80" height="50" rx="5" class="accent" opacity="0.6"/>
+    <rect x="70" y="50" width="60" height="30" fill="white"/>
+  </g>
+
+  <!-- Text -->
+  <text x="600" y="320" text-anchor="middle" class="title">Solana Insider Monitor</text>
+  <text x="600" y="380" text-anchor="middle" class="subtitle">Track Solana wallet activities in real-time</text>
+</svg>
