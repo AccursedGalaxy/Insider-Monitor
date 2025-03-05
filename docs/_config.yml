@@ -1,6 +1,6 @@
 title: Solana Insider Monitor
 description: Documentation for monitoring Solana wallet activities and balance changes
-remote_theme: just-the-docs/just-the-docs@v0.7.0
+theme: just-the-docs
 
 # Set a baseurl if your site is running in a virtual subdirectory
 baseurl: "/Insider-Monitor"
