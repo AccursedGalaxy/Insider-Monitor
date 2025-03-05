@@ -37,6 +37,9 @@ theme:
   icon:
     repo: fontawesome/brands/github
     logo: material/wallet-outline
+  # Ensuring static_templates directory is properly configured
+  static_templates:
+    - 404.html
 
 nav:
   - Home: index.md
@@ -90,9 +93,13 @@ extra:
       link: https://www.linkedin.com/in/bohrer-robin
     - icon: fontawesome/brands/discord
       link: https://discord.gg/7vY9ZBPdya
+  # Fix Google Analytics configuration
   analytics:
     provider: google
-    property: !!str ${GOOGLE_ANALYTICS_KEY}
+    property: !ENV [GOOGLE_ANALYTICS_KEY, '']
+
+extra_css:
+  - assets/css/custom.css
 
 extra_javascript:
   - assets/js/extra.js
@@ -112,8 +119,8 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
   - tables
