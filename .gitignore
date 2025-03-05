@@ -29,3 +29,6 @@ config.json
 # OS specific
 .DS_Store
 Thumbs.db
+
+
+.cache/
