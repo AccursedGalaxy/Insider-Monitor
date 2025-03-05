@@ -2,8 +2,8 @@
 layout: home
 title: Home
 nav_order: 1
-description: "Solana Insider Monitor - A tool for monitoring Solana wallet activities and balance changes"
 permalink: /
+description: "Solana Insider Monitor - A tool for monitoring Solana wallet activities and balance changes"
 ---
 
 # Solana Insider Monitor
