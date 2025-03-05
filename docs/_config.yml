@@ -2,6 +2,8 @@ title: Solana Insider Monitor
 description: Documentation for monitoring Solana wallet activities and balance changes
 remote_theme: just-the-docs/just-the-docs
 color_scheme: light
+baseurl: "/Insider-Monitor" # the subpath of your site, e.g. /blog
+url: "https://accursedgalaxy.github.io" # the base hostname & protocol for your site
 
 # Theme configuration
 logo: "/assets/images/logo.svg"
