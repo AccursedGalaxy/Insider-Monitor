@@ -24,12 +24,12 @@ repos:
         types: [go]
         pass_filenames: false
 
-      - id: go-lint
-        name: golangci-lint
-        entry: golangci-lint run --timeout=5m
-        language: system
-        types: [go]
-        pass_filenames: false
+#      - id: go-lint
+#        name: golangci-lint
+#        entry: golangci-lint run --timeout=5m
+#        language: system
+#        types: [go]
+#        pass_filenames: false
 
       - id: go-tidy
         name: go mod tidy

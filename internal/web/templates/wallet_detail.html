@@ -1,0 +1,242 @@
+<div class="mb-6">
+    <a href="/wallets" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Wallets
+    </a>
+</div>
+
+<div class="bg-white rounded-lg shadow mb-6">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium">Wallet Details</h3>
+            <a href="https://explorer.solana.com/address/{{.Address}}" target="_blank" class="text-indigo-600 hover:text-indigo-900 text-sm">
+                View on Explorer <i class="fas fa-external-link-alt"></i>
+            </a>
+        </div>
+    </div>
+    <div class="p-6">
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500">Address</h4>
+                    <p class="text-lg font-mono break-all">{{.Address}}</p>
+                </div>
+                <button id="copy-address" class="text-indigo-600 hover:text-indigo-900" data-address="{{.Address}}">
+                    <i class="far fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-500">Last Scanned</h4>
+                <p class="text-xl" id="last-scanned">Loading...</p>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-500">Tokens</h4>
+                <p class="text-xl" id="token-count">Loading...</p>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-500">Network</h4>
+                <p class="text-xl" id="network">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Token Balances</h3>
+        <div class="relative">
+            <input type="text" id="token-search" placeholder="Search tokens..." class="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <i class="fas fa-search absolute top-3 right-3 text-gray-400"></i>
+        </div>
+    </div>
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="token-body">
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">Loading token data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const walletAddress = '{{.Address}}';
+
+        // Copy address button
+        document.getElementById('copy-address').addEventListener('click', function() {
+            const address = this.getAttribute('data-address');
+            navigator.clipboard.writeText(address)
+                .then(() => {
+                    // Change icon temporarily to show success
+                    const icon = this.querySelector('i');
+                    icon.className = 'fas fa-check text-green-500';
+                    setTimeout(() => {
+                        icon.className = 'far fa-copy';
+                    }, 2000);
+                })
+                .catch(err => console.error('Failed to copy:', err));
+        });
+
+        // Fetch wallet details
+        fetch(`/api/wallets/${walletAddress}`)
+            .then(response => response.json())
+            .then(wallet => {
+                renderWalletDetails(wallet);
+                initTokenSearch();
+            })
+            .catch(error => console.error('Error fetching wallet details:', error));
+    });
+
+    function renderWalletDetails(wallet) {
+        // Update wallet metadata
+        document.getElementById('last-scanned').textContent = wallet.last_scanned ? timeAgo(new Date(wallet.last_scanned)) : 'Never';
+
+        const tokenCount = Object.keys(wallet.token_accounts || {}).length;
+        document.getElementById('token-count').textContent = `${tokenCount} token${tokenCount !== 1 ? 's' : ''}`;
+
+        document.getElementById('network').textContent = wallet.network_url ?
+            (wallet.network_url.includes('mainnet') ? 'Mainnet' :
+             wallet.network_url.includes('devnet') ? 'Devnet' : 'Custom') : 'Unknown';
+
+        // Render token table
+        const tokenBody = document.getElementById('token-body');
+
+        if (tokenCount === 0) {
+            tokenBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">No tokens found for this wallet</td>
+                </tr>
+            `;
+            return;
+        }
+
+        const tokensHTML = Object.entries(wallet.token_accounts).map(([mint, token]) => {
+            const balance = token.balance / Math.pow(10, token.decimals || 0);
+            const lastUpdated = token.last_updated ? new Date(token.last_updated) : null;
+
+            return `
+                <tr class="token-row" data-mint="${mint.toLowerCase()}" data-symbol="${(token.symbol || '').toLowerCase()}">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    ${token.symbol || 'Unknown'}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 font-mono">
+                                    ${mint.substring(0, 4)}...${mint.substring(mint.length - 4)}
+                                </div>
+                            </div>
+                            <button class="ml-2 text-gray-400 hover:text-gray-600 copy-mint-btn" data-mint="${mint}">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${balance.toLocaleString()}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${lastUpdated ? timeAgo(lastUpdated) : 'Never'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="https://explorer.solana.com/address/${mint}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                            <i class="fas fa-external-link-alt"></i> View Token
+                        </a>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tokenBody.innerHTML = tokensHTML;
+
+        // Add click handlers for copy buttons
+        document.querySelectorAll('.copy-mint-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const mint = this.getAttribute('data-mint');
+                navigator.clipboard.writeText(mint)
+                    .then(() => {
+                        // Change icon temporarily to show success
+                        const icon = this.querySelector('i');
+                        icon.className = 'fas fa-check text-green-500';
+                        setTimeout(() => {
+                            icon.className = 'far fa-copy';
+                        }, 2000);
+                    })
+                    .catch(err => console.error('Failed to copy:', err));
+            });
+        });
+    }
+
+    function initTokenSearch() {
+        const searchInput = document.getElementById('token-search');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tokenRows = document.querySelectorAll('.token-row');
+
+            tokenRows.forEach(row => {
+                const mint = row.getAttribute('data-mint');
+                const symbol = row.getAttribute('data-symbol');
+                const isVisible = mint.includes(searchTerm) || symbol.includes(searchTerm);
+                row.style.display = isVisible ? '' : 'none';
+            });
+
+            // Show "no results" message if needed
+            const visibleRows = document.querySelectorAll('.token-row[style=""]').length;
+            const tbody = document.getElementById('token-body');
+
+            if (visibleRows === 0 && searchTerm !== '') {
+                if (!document.getElementById('no-results-row')) {
+                    const noResultsRow = document.createElement('tr');
+                    noResultsRow.id = 'no-results-row';
+                    noResultsRow.innerHTML = `
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                            No tokens found matching "${searchTerm}"
+                        </td>
+                    `;
+                    tbody.appendChild(noResultsRow);
+                }
+            } else {
+                const noResultsRow = document.getElementById('no-results-row');
+                if (noResultsRow) {
+                    noResultsRow.remove();
+                }
+            }
+        });
+    }
+
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + ' years ago';
+
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + ' months ago';
+
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + ' days ago';
+
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + ' hours ago';
+
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + ' minutes ago';
+
+        return Math.floor(seconds) + ' seconds ago';
+    }
+</script>

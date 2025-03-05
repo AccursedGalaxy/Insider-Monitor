@@ -1,0 +1,204 @@
+<div class="bg-white rounded-lg shadow mb-6">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <h3 class="text-lg font-medium">Configuration Settings</h3>
+    </div>
+    <div class="p-6">
+        <div class="space-y-6">
+            <div>
+                <h4 class="text-md font-medium mb-2">Network Settings</h4>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700">Network URL</h5>
+                            <p class="text-gray-500 text-sm">{{.Config.NetworkURL}}</p>
+                        </div>
+                        <div class="text-xs px-3 py-1 rounded-full
+                            {{if eq .Config.NetworkURL "https://api.mainnet-beta.solana.com"}}
+                            bg-green-100 text-green-800
+                            {{else if eq .Config.NetworkURL "https://api.devnet.solana.com"}}
+                            bg-yellow-100 text-yellow-800
+                            {{else if eq .Config.NetworkURL "https://api.testnet.solana.com"}}
+                            bg-purple-100 text-purple-800
+                            {{else}}
+                            bg-blue-100 text-blue-800
+                            {{end}}
+                        ">
+                            {{if eq .Config.NetworkURL "https://api.mainnet-beta.solana.com"}}
+                            Mainnet
+                            {{else if eq .Config.NetworkURL "https://api.devnet.solana.com"}}
+                            Devnet
+                            {{else if eq .Config.NetworkURL "https://api.testnet.solana.com"}}
+                            Testnet
+                            {{else}}
+                            Custom
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-md font-medium mb-2">Scan Settings</h4>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700">Scan Interval</h5>
+                            <p class="text-gray-500 text-sm">{{.Config.ScanInterval}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-md font-medium mb-2">Alert Settings</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="text-sm font-medium text-gray-700">Minimum Balance</h5>
+                        <p class="text-gray-500 text-sm">{{.Config.Alerts.MinimumBalance}}</p>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="text-sm font-medium text-gray-700">Significant Change</h5>
+                        <p class="text-gray-500 text-sm">{{printf "%.0f%%" (mul .Config.Alerts.SignificantChange 100)}}%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-md font-medium mb-2">Notification Settings</h4>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700">Discord Notifications</h5>
+                            <p class="text-gray-500 text-sm">
+                                {{if .Config.Discord.Enabled}}
+                                Enabled
+                                {{else}}
+                                Disabled
+                                {{end}}
+                            </p>
+                        </div>
+                        <div class="text-xs px-3 py-1 rounded-full
+                            {{if .Config.Discord.Enabled}}
+                            bg-green-100 text-green-800
+                            {{else}}
+                            bg-gray-100 text-gray-800
+                            {{end}}
+                        ">
+                            {{if .Config.Discord.Enabled}}
+                            Active
+                            {{else}}
+                            Inactive
+                            {{end}}
+                        </div>
+                    </div>
+
+                    {{if .Config.Discord.Enabled}}
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <h5 class="text-sm font-medium text-gray-700 mb-1">Webhook URL</h5>
+                        <p class="text-gray-500 text-sm break-all">
+                            {{.Config.Discord.WebhookURL}}
+                        </p>
+                    </div>
+
+                    <div class="mt-3">
+                        <h5 class="text-sm font-medium text-gray-700 mb-1">Channel ID</h5>
+                        <p class="text-gray-500 text-sm">
+                            {{.Config.Discord.ChannelID}}
+                        </p>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-md font-medium mb-2">Monitored Wallets</h4>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="mb-2 flex justify-between items-center">
+                        <h5 class="text-sm font-medium text-gray-700">Wallet Addresses</h5>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{len .Config.Wallets}} wallets</span>
+                    </div>
+                    <div class="space-y-3 max-h-60 overflow-y-auto">
+                        {{range .Config.Wallets}}
+                        <div class="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                            <p class="text-sm font-mono">{{.}}</p>
+                            <div class="flex space-x-2">
+                                <a href="/wallets/{{.}}" class="text-indigo-600 hover:text-indigo-900">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="https://explorer.solana.com/address/{{.}}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-md font-medium mb-2">Ignored Tokens</h4>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="mb-2 flex justify-between items-center">
+                        <h5 class="text-sm font-medium text-gray-700">Token Addresses</h5>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{len .Config.Alerts.IgnoreTokens}} tokens</span>
+                    </div>
+
+                    {{if len .Config.Alerts.IgnoreTokens}}
+                    <div class="space-y-3 max-h-40 overflow-y-auto">
+                        {{range .Config.Alerts.IgnoreTokens}}
+                        <div class="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                            <p class="text-sm font-mono">{{.}}</p>
+                            <a href="https://explorer.solana.com/address/{{.}}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        {{end}}
+                    </div>
+                    {{else}}
+                    <p class="text-gray-500 text-sm italic">No tokens are being ignored</p>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <h3 class="text-lg font-medium">Update Configuration</h3>
+    </div>
+    <div class="p-6">
+        <p class="mb-4 text-gray-600">To update your configuration, edit the <code class="bg-gray-100 px-2 py-1 rounded">config.json</code> file and restart the monitor.</p>
+
+        <pre class="bg-gray-800 text-gray-200 p-4 rounded-lg overflow-x-auto whitespace-pre">
+{
+    "network_url": "{{.Config.NetworkURL}}",
+    "wallets": [
+{{range $index, $wallet := .Config.Wallets}}        "{{$wallet}}"{{if lt $index (sub (len $.Config.Wallets) 1)}},{{end}}
+{{end}}    ],
+    "scan_interval": "{{.Config.ScanInterval}}",
+    "alerts": {
+        "minimum_balance": {{.Config.Alerts.MinimumBalance}},
+        "significant_change": {{.Config.Alerts.SignificantChange}},
+        "ignore_tokens": [
+{{range $index, $token := .Config.Alerts.IgnoreTokens}}            "{{$token}}"{{if lt $index (sub (len $.Config.Alerts.IgnoreTokens) 1)}},{{end}}
+{{end}}        ]
+    },
+    "discord": {
+        "enabled": {{.Config.Discord.Enabled}},
+        "webhook_url": "{{.Config.Discord.WebhookURL}}",
+        "channel_id": "{{.Config.Discord.ChannelID}}"
+    }
+}
+</pre>
+    </div>
+</div>
+
+{{define "mul"}}
+  {{printf "%.2f" (mul . .)}}
+{{end}}
+
+{{define "sub"}}
+  {{sub . .}}
+{{end}}
