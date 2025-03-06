@@ -21,6 +21,17 @@ Implement additional dashboard controls
 Add monitoring statistics and historical data
 Create alert management in the UI
 
+## Web Dashboard Stuff:
+- [ ] Order Tables by Values
+- [ ] Show USD Values
+        - Think about how to best integrate a price stream (possible through QuickNode RPC Endpoint we arealdy use)
+- [ ] Show Token Names
+- [ ] Show Wallet Names (Need to setup naming and grouping via config)
+        - Provide Search for Names, Addresses, (Token Names?)
+- [ ] Update Configuration Page to properly show the new settings
+        - may need a re-design
+
+
 ## Documentation Stuff:
 - [x] Better Align "Community" and "Open Source" sections on the hompage.
         - Especially the "Join Discord" and "GitHub" buttons.
