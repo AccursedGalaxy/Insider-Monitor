@@ -53,6 +53,10 @@ jobs:
 
       - name: Create .nojekyll file in repo root
         run: |
+          # Create .nojekyll file first
+          touch .nojekyll
+
+          # Then add it to git
           git add .nojekyll
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
