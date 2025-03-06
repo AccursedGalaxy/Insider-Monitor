@@ -8,13 +8,13 @@
     </div>
     <div class="p-6">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200" id="wallets-table">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallet Address</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Scanned</th>
-                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" data-sortable="false">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="wallets-body">
@@ -27,6 +27,7 @@
     </div>
 </div>
 
+<script src="/static/js/table-sort.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/wallets')
@@ -34,6 +35,12 @@
             .then(data => {
                 renderWallets(data);
                 initSearch();
+
+                // Initialize table sorting after rendering data
+                new TableSorter('wallets-table', {
+                    initialColumn: 0,
+                    initialDirection: 'asc'
+                });
             })
             .catch(error => console.error('Error fetching wallet data:', error));
     });
@@ -53,6 +60,7 @@
         const walletsHTML = Object.entries(walletData).map(([address, wallet]) => {
             const tokenCount = Object.keys(wallet.token_accounts || {}).length;
             const lastScanned = wallet.last_scanned ? new Date(wallet.last_scanned) : null;
+            const lastScannedTimestamp = lastScanned ? lastScanned.getTime() : 0;
 
             return `
                 <tr class="wallet-row" data-address="${address.toLowerCase()}">
@@ -71,10 +79,10 @@
                             </a>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="${tokenCount}">
                         <div class="text-sm text-gray-900">${tokenCount} token${tokenCount !== 1 ? 's' : ''}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="${lastScannedTimestamp}">
                         <div class="text-sm text-gray-900">${lastScanned ? timeAgo(lastScanned) : 'Never'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
