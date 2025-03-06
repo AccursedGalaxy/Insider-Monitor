@@ -95,22 +95,24 @@ func (c *Client) writePump() {
 				return
 			}
 
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
-			if err != nil {
+			// Send each message as a separate WebSocket message
+			// rather than concatenating them
+			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.Printf("Error writing WebSocket message: %v", err)
 				return
 			}
-			w.Write(message)
 
-			// Add queued messages to the current WebSocket message
+			// Process any additional messages in the queue, but each as a separate message
+			// This prevents concatenation of JSON objects
 			n := len(c.Send)
 			for i := 0; i < n; i++ {
-				w.Write([]byte("\n"))
-				w.Write(<-c.Send)
+				msg := <-c.Send
+				if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+					log.Printf("Error writing queued WebSocket message: %v", err)
+					return
+				}
 			}
 
-			if err := w.Close(); err != nil {
-				return
-			}
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {

@@ -67,12 +67,37 @@ func GetWalletByAddress(c *gin.Context) {
 
 	address := c.Param("address")
 
-	// Skip getting real data for now and avoid the unused ctx variable
+	// Fetch wallet data from the monitor
+	ctx := c.Request.Context()
+	results, err := walletMonitor.ScanWallets(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to scan wallets: " + err.Error(),
+		})
+		return
+	}
+
+	// Check if the requested wallet exists in our results
+	walletData, exists := results[address]
+	if !exists {
+		// Return a structured response even if wallet not found
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"address":      address,
+			"label":        "Wallet " + address,
+			"last_scanned": time.Now(),
+			"token_count":  0,
+			"status":       "wallet_not_found",
+		})
+		return
+	}
+
+	// Return detailed wallet data
 	wallet := map[string]interface{}{
 		"address":      address,
 		"label":        "Wallet " + address[:8] + "...",
-		"last_scanned": time.Now(),
-		"token_count":  0,
+		"last_scanned": walletData.LastScanned,
+		"token_count":  len(walletData.TokenAccounts),
+		"status":       "ok",
 	}
 
 	c.JSON(http.StatusOK, wallet)
