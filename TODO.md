@@ -25,7 +25,7 @@ Create alert management in the UI
 - [x] Better Align "Community" and "Open Source" sections on the hompage.
         - Especially the "Join Discord" and "GitHub" buttons.
 
-- [ ] /discord-integration.html seems to have a missing image.
+- [x] /discord-integration.html seems to have a missing image.
 
 - [ ] /api/authentication.md has not yet been created.
 - [ ] /api/endpoints.md has not yet been created.
