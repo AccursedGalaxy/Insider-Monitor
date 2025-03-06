@@ -35,5 +35,5 @@ Create alert management in the UI
 
 - [x] better seo for the homepage
 
-- [ ] Consider changing the name form "Insider Monitor" to "Solana Monitor"
+-> Consider changing the name form "Insider Monitor" to "Solana Monitor"
         - But I don't konw if this is a good idea and if I want to add other chains in the future.
