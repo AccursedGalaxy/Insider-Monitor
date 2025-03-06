@@ -1,31 +1,38 @@
-# Solana Insider Monitor
+# Solana Wallet Monitor - Track Insider Trading & Token Balance Changes
 
-A tool for monitoring Solana wallet activities, detecting balance changes, and receiving real-time alerts.
+Real-time monitoring tool for Solana blockchain wallets. Track wallet activities, detect potential insider trading patterns, monitor SOL & SPL token balance changes, and receive instant alerts.
 
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://accursedgalaxy.github.io/Insider-Monitor/)
+[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/7vY9ZBPdya)
+[![License](https://img.shields.io/github/license/accursedgalaxy/insider-monitor)](LICENSE)
+
+## What is Solana Insider Monitor?
+
+Solana Insider Monitor is an open-source tool designed to help traders, developers, and blockchain enthusiasts track Solana wallet activities in real-time. Whether you're monitoring for potential insider trading signals, tracking project wallets, or analyzing token flows, this tool provides comprehensive wallet monitoring capabilities with minimal setup.
 
 ## Community
 
-Join our Discord community to:
+Join our growing Solana wallet monitoring community on Discord:
 - Get help with setup and configuration
 - Share feedback and suggestions
-- Connect with other users
+- Connect with other Solana wallet trackers
 - Stay updated on new features and releases
-- Discuss Solana development
+- Discuss Solana development and wallet monitoring strategies
 
 👉 [Join the Discord Server](https://discord.gg/7vY9ZBPdya)
 
-## Features
+## Key Features
 
-- 🔍 Monitor multiple Solana wallets simultaneously
-- 💰 Track token balance changes
-- ⚡ Real-time alerts for significant changes
-- 🔔 Discord integration for notifications
-- 💾 Persistent storage of wallet data
-- 🛡️ Graceful handling of network interruptions
-- 🌐 Web interface for monitoring and configuration
-- 🔑 Authentication for secure API access
-- 🔄 REST API for programmatic access and integration
+- 🔍 **Multi-Wallet Monitoring** - Track multiple Solana wallets simultaneously for any activity
+- 💰 **SOL & SPL Token Tracking** - Monitor all token balance changes with precision
+- 🕵️ **Insider Trading Detection** - Identify suspicious wallet activity before major announcements
+- ⚡ **Real-Time Alerts** - Get notified immediately of significant wallet changes
+- 🔔 **Discord Integration** - Receive instant notifications in your Discord server
+- 💾 **Historical Data Storage** - Maintain records of all wallet activity over time
+- 🛡️ **Network Interruption Handling** - Continue monitoring even through connection issues
+- 🌐 **Web Dashboard Interface** - Manage everything through an intuitive UI
+- 🔑 **Secure Authentication** - Protect your monitoring setup with JWT authentication
+- 🔄 **Comprehensive REST API** - Integrate with other systems through our well-documented API
 
 ## Quick Start
 
@@ -52,7 +59,7 @@ go mod download
 cp config.example.json config.json
 ```
 
-2. Edit `config.json` with your settings:
+2. Edit `config.json` with your wallet monitoring settings:
 ```json
 {
     "network_url": "https://api.mainnet-beta.solana.com",
@@ -80,25 +87,25 @@ cp config.example.json config.json
   - Mainnet: "https://api.mainnet-beta.solana.com"
   - Devnet: "https://api.devnet.solana.com"
   - Custom RPC endpoints are supported
-- `wallets`: Array of Solana wallet addresses to monitor
-- `scan_interval`: Time between scans (e.g., "30s", "1m", "5m")
+- `wallets`: Array of Solana wallet addresses to monitor for activity
+- `scan_interval`: Time between wallet scans (e.g., "30s", "1m", "5m")
 - `alerts`:
   - `minimum_balance`: Minimum token balance to trigger alerts
   - `significant_change`: Percentage change to trigger alerts (0.20 = 20%)
-  - `ignore_tokens`: Array of token addresses to ignore
+  - `ignore_tokens`: Array of token addresses to ignore from monitoring
 - `discord`:
-  - `enabled`: Set to true to enable Discord notifications
+  - `enabled`: Set to true to enable Discord wallet notifications
   - `webhook_url`: Discord webhook URL
-  - `channel_id`: Discord channel ID
+  - `channel_id`: Discord channel ID for alerts
 
-### Running the Monitor
+### Running the Solana Wallet Monitor
 
 #### Console Mode
 ```bash
 go run cmd/monitor/main.go
 ```
 
-#### Test Mode (with mock data)
+#### Test Mode (with mock wallet data)
 ```bash
 go run cmd/monitor/main.go -test
 ```
@@ -118,29 +125,32 @@ go run cmd/monitor/main.go -config path/to/config.json
 go run cmd/monitor/main.go -web -port 9090
 ```
 
-### Alert Levels
+### Alert Levels for Wallet Activity
 
 The monitor uses three alert levels based on the configured `significant_change`:
-- 🔴 **Critical**: Changes >= 5x the threshold
-- 🟡 **Warning**: Changes >= 2x the threshold
-- 🟢 **Info**: Changes below 2x the threshold
+- 🔴 **Critical**: Token balance changes >= 5x the threshold
+- 🟡 **Warning**: Token balance changes >= 2x the threshold
+- 🟢 **Info**: Token balance changes below 2x the threshold
 
-### Data Storage
+### Historical Data Storage
 
-The monitor stores wallet data in the `./data` directory to:
-- Prevent false alerts after restarts
-- Track historical changes
-- Handle network interruptions gracefully
+The monitor stores Solana wallet data in the `./data` directory to:
+- Prevent false alerts after monitor restarts
+- Track historical wallet balance changes
+- Handle Solana network interruptions gracefully
+- Enable analysis of wallet activity patterns over time
 
-## Web Interface
+## Web Dashboard Interface
 
-The application includes a web interface for easy monitoring and configuration. When running with the `-web` flag, you can access the interface at `http://localhost:8080` (or your custom port).
+The application includes a comprehensive web dashboard for easy monitoring and configuration of Solana wallets. When running with the `-web` flag, you can access the interface at `http://localhost:8080` (or your custom port).
 
-### Features:
-- Dashboard overview of all monitored wallets
-- Detailed view of each wallet's token balances
+### Dashboard Features:
+- Real-time overview of all monitored Solana wallets
+- Detailed view of each wallet's SOL and SPL token balances
+- Historical charts of wallet activity and balance changes
 - Configuration management through a user-friendly interface
-- Real-time data refresh
+- Instant alerts for significant wallet activity
+- Real-time data refresh from the Solana blockchain
 
 ### Authentication:
 The web interface and API use JWT authentication for secure access. The default credentials are:
@@ -149,20 +159,20 @@ The web interface and API use JWT authentication for secure access. The default 
 
 ## API Documentation
 
-The application provides a REST API for programmatic access and integration with other systems.
+The application provides a comprehensive REST API for programmatic access and integration with other systems for monitoring Solana wallets.
 
 ### Public Endpoints:
 
-- `GET /api/wallets` - Get all monitored wallet data
-- `GET /api/wallets/{address}` - Get details for a specific wallet
+- `GET /api/wallets` - Get all monitored Solana wallet data
+- `GET /api/wallets/{address}` - Get details for a specific Solana wallet
 - `POST /api/refresh` - Trigger an immediate refresh of wallet data
 
 ### Protected Endpoints (require authentication):
 
-- `GET /api/admin/config` - Get current configuration
-- `PUT /api/admin/config` - Update configuration
-- `POST /api/admin/wallets` - Add a new wallet to monitor
-- `DELETE /api/admin/wallets/{address}` - Remove a wallet from monitoring
+- `GET /api/admin/config` - Get current wallet monitoring configuration
+- `PUT /api/admin/config` - Update wallet monitoring configuration
+- `POST /api/admin/wallets` - Add a new Solana wallet to monitor
+- `DELETE /api/admin/wallets/{address}` - Remove a Solana wallet from monitoring
 
 ### Authentication:
 
@@ -191,7 +201,7 @@ make build
 
 The binary will be available in the `bin` directory.
 
-## Documentation
+## Comprehensive Documentation
 
 📚 **[View the full documentation](https://accursedgalaxy.github.io/Insider-Monitor/)** for detailed guides, API reference, and more.
 
@@ -202,9 +212,19 @@ The documentation covers:
 - [Authentication](https://accursedgalaxy.github.io/Insider-Monitor/authentication)
 - [Web Interface Guide](https://accursedgalaxy.github.io/Insider-Monitor/web-interface)
 
+## Use Cases
+
+The Solana Insider Monitor is ideal for:
+
+- **Traders**: Track wallets of project insiders for potential trading signals
+- **Developers**: Monitor project treasury wallets for fund movements
+- **Security Teams**: Detect unusual activity on critical wallets
+- **Analysts**: Study token flow patterns and large holder behaviors
+- **Project Owners**: Keep track of team and investor wallets
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions to improve Solana Insider Monitor are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
