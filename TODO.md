@@ -1,12 +1,5 @@
 # TODO
 
-## Current Overview:
-- Single process application (cmd/monitor/main.go)
-- Web UI and monitor run in the same process
-- Configuration is loaded from files only
-- No authentication/authorization
-
-
 ## Upgrade Plan:
 Phase 1: Create API endpoints in the current application
 Add basic CRUD endpoints for configuration
@@ -27,3 +20,16 @@ Phase 4: Enhance features
 Implement additional dashboard controls
 Add monitoring statistics and historical data
 Create alert management in the UI
+
+## Documentation Stuff:
+- [ ] Better Align "Community" and "Open Source" sections on the hompage.
+        - Especially the "Join Discord" and "GitHub" buttons.
+- [ ] /api/authentication.md has not yet been created.
+- [ ] /api/endpoints.md has not yet been created.
+- [ ] /api/integration-examples.md has not yet been created.
+- [ ] /discord-integration.html seems to have a missing image.
+- [ ] /developer/building.md has not yet been created.
+- [ ] /developer/testing.md has not yet been created.
+- [ ] better seo for the homepage
+- [ ] Consider changing the name form "Insider Monitor" to "Solana Monitor"
+        - But I don't konw if this is a good idea and if I want to add other chains in the future.
