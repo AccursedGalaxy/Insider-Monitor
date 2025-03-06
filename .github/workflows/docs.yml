@@ -117,3 +117,12 @@ jobs:
           # List content of docs directory
           echo "Content of docs directory:"
           find docs -type f | sort
+
+      - name: Force GitHub Pages rebuild
+        run: |
+          # Add a temporary file with timestamp to force rebuild
+          date > site/force-rebuild-$(date +%s).txt
+          git add site/force-rebuild-*.txt
+          git commit -m "Force GitHub Pages rebuild"
+          git push origin gh-pages
+        continue-on-error: true
