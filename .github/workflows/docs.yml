@@ -1,0 +1,128 @@
+name: docs
+on:
+  push:
+    branches:
+      - master
+      - main
+      - feat/web-ui
+
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Required for git-revision-date-localized plugin
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - uses: actions/cache@v4
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      # Install all required dependencies for mkdocs.yml
+      - name: Install MkDocs and plugins
+        run: |
+          pip install mkdocs-material>=9.4.0
+          pip install pillow cairosvg
+          pip install mkdocs-minify-plugin
+          pip install mkdocs-git-revision-date-localized-plugin
+          pip install pymdown-extensions
+
+          # Create CSS directory if it doesn't exist
+          mkdir -p docs/assets/css
+          # Only create custom.css if it doesn't exist
+          if [ ! -f "docs/assets/css/custom.css" ]; then
+            echo "/* Custom styles for documentation */" > docs/assets/css/custom.css
+          fi
+
+          # Only create extra.js if it doesn't exist
+          if [ ! -f "docs/assets/js/extra.js" ]; then
+            echo "/* Custom JavaScript for documentation */" > docs/assets/js/extra.js
+          fi
+
+          # Set environment variable for Google Analytics if needed
+          if [ -n "${{ vars.GOOGLE_ANALYTICS_KEY }}" ]; then
+            echo "GOOGLE_ANALYTICS_KEY=${{ vars.GOOGLE_ANALYTICS_KEY }}" >> $GITHUB_ENV
+          fi
+
+      - name: Create .nojekyll file in repo root
+        run: |
+          # Create .nojekyll file first
+          touch .nojekyll
+
+          # Then add it to git
+          git add .nojekyll
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+          git commit -m "Add .nojekyll file to root of repository" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }} || echo "No changes to push"
+
+      - name: Prepare for gh-pages deployment
+        run: |
+          # Create empty default layout to prevent Jekyll from using its own
+          mkdir -p site/_layouts
+          echo "{{ content }}" > site/_layouts/default.html
+
+          # Create .nojekyll in site directory
+          touch site/.nojekyll
+
+      - name: Deploy documentation
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+
+          # Create a .nojekyll file in docs directory
+          touch docs/.nojekyll
+
+          # Build the documentation
+          mkdocs build --verbose
+
+          # Create .nojekyll in site directory
+          touch site/.nojekyll
+
+          # Ensure .nojekyll will be at the root of gh-pages branch
+          echo "Deploying with .nojekyll file..."
+          mkdocs gh-deploy --force --verbose --config-file mkdocs.yml
+
+          # Verify deployment
+          echo "Checking if .nojekyll file exists in gh-pages branch"
+          git checkout gh-pages
+          ls -la
+          if [ -f ".nojekyll" ]; then
+            echo ".nojekyll file exists in gh-pages branch root"
+          else
+            echo ".nojekyll file MISSING in gh-pages branch root"
+            echo "Creating .nojekyll file in gh-pages branch root"
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Add .nojekyll file to root of gh-pages branch"
+            git push origin gh-pages
+          fi
+
+      - name: Debug Material Theme Installation
+        run: |
+          # Check if Material theme is installed correctly
+          pip show mkdocs-material
+
+          # Create test directory to verify Material theme files
+          mkdir -p overrides
+          echo '<p>Theme debug info:</p>{% if config.theme.name == "material" %}<p>Material theme is active</p>{% else %}<p>Material theme is NOT active</p>{% endif %}' > overrides/main.html
+
+          # List content of docs directory
+          echo "Content of docs directory:"
+          find docs -type f | sort
+
+      - name: Force GitHub Pages rebuild
+        run: |
+          # Add a temporary file with timestamp to force rebuild
+          date > site/force-rebuild-$(date +%s).txt
+          git add site/force-rebuild-*.txt
+          git commit -m "Force GitHub Pages rebuild"
+          git push origin gh-pages
+        continue-on-error: true

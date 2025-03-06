@@ -1,0 +1,165 @@
+<div class="bg-white rounded-lg shadow">
+    <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <h3 class="text-lg font-medium">Monitored Wallets</h3>
+        <div class="relative">
+            <input type="text" id="wallet-search" placeholder="Search wallets..." class="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <i class="fas fa-search absolute top-3 right-3 text-gray-400"></i>
+        </div>
+    </div>
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallet Address</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tokens</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Scanned</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="wallets-body">
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">Loading wallets...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/wallets')
+            .then(response => response.json())
+            .then(data => {
+                renderWallets(data);
+                initSearch();
+            })
+            .catch(error => console.error('Error fetching wallet data:', error));
+    });
+
+    function renderWallets(walletData) {
+        const walletsBody = document.getElementById('wallets-body');
+
+        if (Object.keys(walletData).length === 0) {
+            walletsBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">No wallets configured for monitoring</td>
+                </tr>
+            `;
+            return;
+        }
+
+        const walletsHTML = Object.entries(walletData).map(([address, wallet]) => {
+            const tokenCount = Object.keys(wallet.token_accounts || {}).length;
+            const lastScanned = wallet.last_scanned ? new Date(wallet.last_scanned) : null;
+
+            return `
+                <tr class="wallet-row" data-address="${address.toLowerCase()}">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="text-sm font-medium text-gray-900 wallet-address">
+                                ${address.substring(0, 8)}...${address.substring(address.length - 8)}
+                            </div>
+                            <button class="ml-2 text-gray-400 hover:text-gray-600 copy-btn" data-address="${address}">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <a href="https://explorer.solana.com/address/${address}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                                View on Explorer <i class="fas fa-external-link-alt text-xs"></i>
+                            </a>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${tokenCount} token${tokenCount !== 1 ? 's' : ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${lastScanned ? timeAgo(lastScanned) : 'Never'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <a href="/wallets/${address}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-md">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        walletsBody.innerHTML = walletsHTML;
+
+        // Add click handlers for copy buttons
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const address = this.getAttribute('data-address');
+                navigator.clipboard.writeText(address)
+                    .then(() => {
+                        // Change icon temporarily to show success
+                        const icon = this.querySelector('i');
+                        icon.className = 'fas fa-check text-green-500';
+                        setTimeout(() => {
+                            icon.className = 'far fa-copy';
+                        }, 2000);
+                    })
+                    .catch(err => console.error('Failed to copy:', err));
+            });
+        });
+    }
+
+    function initSearch() {
+        const searchInput = document.getElementById('wallet-search');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const walletRows = document.querySelectorAll('.wallet-row');
+
+            walletRows.forEach(row => {
+                const address = row.getAttribute('data-address');
+                const isVisible = address.includes(searchTerm);
+                row.style.display = isVisible ? '' : 'none';
+            });
+
+            // Show "no results" message if needed
+            const visibleRows = document.querySelectorAll('.wallet-row[style=""]').length;
+            const tbody = document.getElementById('wallets-body');
+
+            if (visibleRows === 0 && searchTerm !== '') {
+                if (!document.getElementById('no-results-row')) {
+                    const noResultsRow = document.createElement('tr');
+                    noResultsRow.id = 'no-results-row';
+                    noResultsRow.innerHTML = `
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                            No wallets found matching "${searchTerm}"
+                        </td>
+                    `;
+                    tbody.appendChild(noResultsRow);
+                }
+            } else {
+                const noResultsRow = document.getElementById('no-results-row');
+                if (noResultsRow) {
+                    noResultsRow.remove();
+                }
+            }
+        });
+    }
+
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + ' years ago';
+
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + ' months ago';
+
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + ' days ago';
+
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + ' hours ago';
+
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + ' minutes ago';
+
+        return Math.floor(seconds) + ' seconds ago';
+    }
+</script>

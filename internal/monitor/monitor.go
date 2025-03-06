@@ -4,21 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
-	"os"
-	"sort"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/accursedgalaxy/insider-monitor/internal/config"
-	"github.com/accursedgalaxy/insider-monitor/internal/price"
 	bin "github.com/gagliardetto/binary"
+
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
-	"github.com/olekukonko/tablewriter"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
+	"golang.org/x/time/rate"
 )
 
 type WalletMonitor struct {
@@ -26,14 +21,19 @@ type WalletMonitor struct {
 	wallets      []solana.PublicKey
 	networkURL   string
 	isConnected  bool
-	scanConfig   *config.ScanConfig
-	priceService *price.JupiterPrice
+	mu           sync.RWMutex
+	ticker       *time.Ticker
+	scanInterval time.Duration
+	walletData   map[string]*WalletData
+	config       struct {
+		NetworkURL string
+	}
 }
 
-func NewWalletMonitor(networkURL string, wallets []string, scanConfig *config.ScanConfig) (*WalletMonitor, error) {
+func NewWalletMonitor(networkURL string, wallets []string) (*WalletMonitor, error) {
 	client := rpc.NewWithCustomRPCClient(rpc.NewWithLimiter(
 		networkURL,
-		4,
+		rate.Every(time.Second/4),
 		1,
 	))
 
@@ -48,23 +48,18 @@ func NewWalletMonitor(networkURL string, wallets []string, scanConfig *config.Sc
 	}
 
 	return &WalletMonitor{
-		client:       client,
-		wallets:      pubKeys,
-		networkURL:   networkURL,
-		scanConfig:   scanConfig,
-		priceService: price.NewJupiterPrice(),
+		client:     client,
+		wallets:    pubKeys,
+		networkURL: networkURL,
 	}, nil
 }
 
 // Simplified TokenAccountInfo
 type TokenAccountInfo struct {
-	Balance         uint64    `json:"balance"`
-	LastUpdated     time.Time `json:"last_updated"`
-	Symbol          string    `json:"symbol"`
-	Decimals        uint8     `json:"decimals"`
-	USDPrice        float64   `json:"usd_price"`
-	USDValue        float64   `json:"usd_value"`
-	ConfidenceLevel string    `json:"confidence_level"`
+	Balance     uint64    `json:"balance"`
+	LastUpdated time.Time `json:"last_updated"`
+	Symbol      string    `json:"symbol"`
+	Decimals    uint8     `json:"decimals"`
 }
 
 // Simplified WalletData
@@ -122,61 +117,11 @@ func (w *WalletMonitor) getTokenAccountsWithRetry(wallet solana.PublicKey) (*rpc
 	return nil, fmt.Errorf("failed after %d retries: %w", maxRetries, lastErr)
 }
 
-// shouldIncludeToken determines if a token should be included based on scan configuration
-func (w *WalletMonitor) shouldIncludeToken(mint string) bool {
-	if w.scanConfig == nil {
-		return true // If no scan config, include everything
-	}
-
-	switch w.scanConfig.ScanMode {
-	case "whitelist":
-		// Only include tokens in the IncludeTokens list
-		for _, token := range w.scanConfig.IncludeTokens {
-			if strings.EqualFold(token, mint) {
-				return true
-			}
-		}
-		return false
-
-	case "blacklist":
-		// Include all tokens except those in ExcludeTokens list
-		for _, token := range w.scanConfig.ExcludeTokens {
-			if strings.EqualFold(token, mint) {
-				return false
-			}
-		}
-		return true
-
-	default: // "all" or any other value
-		return true
-	}
-}
-
 func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, error) {
 	walletData := &WalletData{
 		WalletAddress: wallet.String(),
 		TokenAccounts: make(map[string]TokenAccountInfo),
 		LastScanned:   time.Now(),
-	}
-
-	// First get native SOL balance
-	balanceResult, err := w.client.GetBalance(
-		context.Background(),
-		wallet,
-		rpc.CommitmentFinalized,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get SOL balance: %w", err)
-	}
-
-	// Add native SOL balance as a special token account
-	if balanceResult != nil && balanceResult.Value > 0 {
-		walletData.TokenAccounts["So11111111111111111111111111111111111111112"] = TokenAccountInfo{
-			Balance:     balanceResult.Value,
-			LastUpdated: time.Now(),
-			Symbol:      "SOL",
-			Decimals:    9,
-		}
 	}
 
 	// Use the retry version instead
@@ -194,21 +139,19 @@ func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, err
 			continue
 		}
 
-		// Only include accounts with positive balance and that pass the filter
+		// Only include accounts with positive balance
 		if tokenAccount.Amount > 0 {
 			mint := tokenAccount.Mint.String()
-			if w.shouldIncludeToken(mint) {
-				walletData.TokenAccounts[mint] = TokenAccountInfo{
-					Balance:     tokenAccount.Amount,
-					LastUpdated: time.Now(),
-					Symbol:      mint[:8] + "...",
-					Decimals:    9,
-				}
+			walletData.TokenAccounts[mint] = TokenAccountInfo{
+				Balance:     tokenAccount.Amount,
+				LastUpdated: time.Now(),
+				Symbol:      mint[:8] + "...",
+				Decimals:    9,
 			}
 		}
 	}
 
-	log.Printf("Wallet %s: found %d token accounts (after filtering)", wallet.String(), len(walletData.TokenAccounts))
+	log.Printf("Wallet %s: found %d token accounts", wallet.String(), len(walletData.TokenAccounts))
 	return walletData, nil
 }
 
@@ -347,241 +290,73 @@ func DetectChanges(oldData, newData map[string]*WalletData, significantChange fl
 	return changes
 }
 
-// Add this helper function
-func formatTokenAmount(amount uint64, decimals uint8) string {
-	if decimals == 0 {
-		return fmt.Sprintf("%d", amount)
-	}
+// UpdateScanInterval updates the scan interval
+func (m *WalletMonitor) UpdateScanInterval(interval time.Duration) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	// Convert to float64 and divide by 10^decimals
-	divisor := math.Pow(10, float64(decimals))
-	value := float64(amount) / divisor
+	// Update the interval
+	m.scanInterval = interval
 
-	// Format with appropriate decimal places based on size
-	switch {
-	case value >= 5000:
-		return fmt.Sprintf("%.2fM", value/1000)
-	case value >= 5:
-		return fmt.Sprintf("%.2fK", value)
-	default:
-		return fmt.Sprintf("%.4f", value)
+	// If you have a ticker, reset it
+	if m.ticker != nil {
+		m.ticker.Stop()
+		m.ticker = time.NewTicker(interval)
 	}
 }
 
-// FormatWalletOverview returns a compact string representation of wallet holdings
-func FormatWalletOverview(data map[string]*WalletData) string {
-	var overview strings.Builder
-	overview.WriteString("\nWallet Holdings Overview:\n")
-	overview.WriteString("------------------------\n")
+// AddWallet adds a wallet to monitor
+func (m *WalletMonitor) AddWallet(address string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	for _, wallet := range data {
-		overview.WriteString(fmt.Sprintf("📍 %s\n", wallet.WalletAddress))
-		if len(wallet.TokenAccounts) == 0 {
-			overview.WriteString("   No tokens found\n")
-			continue
-		}
-
-		// Convert map to slice for sorting
-		type tokenHolding struct {
-			symbol   string
-			balance  uint64
-			decimals uint8
-		}
-		holdings := make([]tokenHolding, 0, len(wallet.TokenAccounts))
-		for _, info := range wallet.TokenAccounts {
-			holdings = append(holdings, tokenHolding{
-				symbol:   info.Symbol,
-				balance:  info.Balance,
-				decimals: info.Decimals,
-			})
-		}
-
-		// Sort by balance (highest first)
-		sort.Slice(holdings, func(i, j int) bool {
-			return holdings[i].balance > holdings[j].balance
-		})
-
-		// Show top 5 holdings
-		maxDisplay := 5
-		if len(holdings) < maxDisplay {
-			maxDisplay = len(holdings)
-		}
-		for i := 0; i < maxDisplay; i++ {
-			balance := formatTokenAmount(holdings[i].balance, holdings[i].decimals)
-			overview.WriteString(fmt.Sprintf("   • %s: %s\n", holdings[i].symbol, balance))
-		}
-
-		// Show how many more tokens if any
-		remaining := len(holdings) - maxDisplay
-		if remaining > 0 {
-			overview.WriteString(fmt.Sprintf("   ... and %d more tokens\n", remaining))
-		}
-		overview.WriteString("\n")
-	}
-	return overview.String()
-}
-
-// Update FormatWalletOverview to include confidence indicators
-func formatTokenValue(value float64, confidence string) string {
-	var indicator string
-	switch strings.ToLower(confidence) {
-	case "high":
-		indicator = "✅"
-	case "medium":
-		indicator = "⚠️"
-	default:
-		indicator = "❓"
+	// Convert address to public key
+	pubKey, err := solana.PublicKeyFromBase58(address)
+	if err != nil {
+		return fmt.Errorf("invalid wallet address: %w", err)
 	}
 
-	if value >= 1000000 {
-		return fmt.Sprintf(" ($%.2fM) %s", value/1000000, indicator)
-	} else if value >= 1000 {
-		return fmt.Sprintf(" ($%.2fK) %s", value/1000, indicator)
-	}
-	return fmt.Sprintf(" ($%.2f) %s", value, indicator)
-}
-
-// Add a struct to hold token data with USD value
-type tokenHolding struct {
-	Mint     string
-	Amount   float64
-	USDValue float64
-	Symbol   string
-}
-
-// Helper function to format large numbers with commas and proper decimals
-func formatLargeNumber(value float64) string {
-	p := message.NewPrinter(language.English)
-	if value >= 1_000_000_000 {
-		return p.Sprintf("%.2fB", value/1_000_000_000)
-	} else if value >= 1_000_000 {
-		return p.Sprintf("%.2fM", value/1_000_000)
-	} else if value >= 1_000 {
-		return p.Sprintf("%.2fK", value/1_000)
-	}
-	return p.Sprintf("%.2f", value)
-}
-
-func (m *WalletMonitor) DisplayWalletOverview(walletDataMap map[string]*WalletData) {
-	fmt.Println("\n🔍 Wallet Holdings Overview")
-	fmt.Println("=======================")
-
-	// Collect all unique mints
-	mints := make([]string, 0)
-	for _, walletData := range walletDataMap {
-		for mint := range walletData.TokenAccounts {
-			mints = append(mints, mint)
-		}
-	}
-
-	// Update prices for all tokens
-	if err := m.priceService.UpdatePrices(mints); err != nil {
-		log.Printf("Error updating prices: %v", err)
-	}
-
+	// Check if wallet already exists
 	for _, wallet := range m.wallets {
-		fmt.Printf("\n📍 Wallet: %s\n", wallet.String())
-		walletData, exists := walletDataMap[wallet.String()]
-		if !exists {
-			continue
+		if wallet.String() == address {
+			return nil // Already exists, no error
 		}
-
-		// Create the table
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Token", "Balance", "USD Value", "Price"})
-		table.SetBorder(false)
-		table.SetColumnAlignment([]int{
-			tablewriter.ALIGN_LEFT,
-			tablewriter.ALIGN_RIGHT,
-			tablewriter.ALIGN_RIGHT,
-			tablewriter.ALIGN_RIGHT,
-		})
-		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-		table.SetColumnSeparator("│")
-		table.SetHeaderColor(
-			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
-			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
-			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
-			tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiBlueColor},
-		)
-
-		// Convert token holdings to slice for sorting
-		holdings := make([]tokenHolding, 0)
-		totalUSDValue := 0.0
-
-		for mint, info := range walletData.TokenAccounts {
-			// Get price data from Jupiter
-			priceData, exists := m.priceService.GetPrice(mint)
-
-			usdValue := 0.0
-			if exists {
-				// Convert balance to float considering decimals
-				actualAmount := float64(info.Balance) / math.Pow(10, float64(info.Decimals))
-				usdValue = actualAmount * priceData.Price
-			}
-
-			holdings = append(holdings, tokenHolding{
-				Mint:     mint,
-				Amount:   float64(info.Balance),
-				USDValue: usdValue,
-				Symbol:   info.Symbol,
-			})
-			totalUSDValue += usdValue
-		}
-
-		// Sort by USD value descending
-		sort.Slice(holdings, func(i, j int) bool {
-			return holdings[i].USDValue > holdings[j].USDValue
-		})
-
-		// Add rows to the table
-		p := message.NewPrinter(language.English)
-		for i := 0; i < min(10, len(holdings)); i++ {
-			holding := holdings[i]
-			actualAmount := holding.Amount / math.Pow(10, float64(9))
-			priceData, exists := m.priceService.GetPrice(holding.Mint)
-
-			var priceStr string
-			if exists {
-				priceStr = p.Sprintf("$%.4f", priceData.Price)
-			} else {
-				priceStr = "N/A"
-			}
-
-			table.Append([]string{
-				holding.Symbol,
-				formatLargeNumber(actualAmount),
-				p.Sprintf("$%s", formatLargeNumber(holding.USDValue)),
-				priceStr,
-			})
-		}
-
-		// Add a summary row
-		if len(holdings) > 10 {
-			table.Append([]string{
-				p.Sprintf("... and %d more", len(holdings)-10),
-				"",
-				"",
-				"",
-			})
-		}
-
-		// Add total value row
-		table.Append([]string{
-			"Total Value",
-			"",
-			p.Sprintf("$%s", formatLargeNumber(totalUSDValue)),
-			"",
-		})
-
-		table.Render()
 	}
+
+	// Add to wallets list
+	m.wallets = append(m.wallets, pubKey)
+
+	// Initialize wallet data if needed
+	if m.walletData == nil {
+		m.walletData = make(map[string]*WalletData)
+	}
+
+	// Add wallet data entry
+	m.walletData[address] = &WalletData{
+		WalletAddress: address,
+		TokenAccounts: make(map[string]TokenAccountInfo),
+		LastScanned:   time.Time{},
+	}
+
+	return nil
 }
 
-// Helper function for min
-func min(a, b int) int {
-	if a < b {
-		return a
+// RemoveWallet removes a wallet from monitoring
+func (m *WalletMonitor) RemoveWallet(address string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Create a new slice without the removed wallet
+	var newWallets []solana.PublicKey
+	for _, wallet := range m.wallets {
+		if wallet.String() != address {
+			newWallets = append(newWallets, wallet)
+		}
 	}
-	return b
+	m.wallets = newWallets
+
+	// Remove from wallet data
+	if m.walletData != nil {
+		delete(m.walletData, address)
+	}
 }

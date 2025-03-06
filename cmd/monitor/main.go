@@ -14,6 +14,8 @@ import (
 	"github.com/accursedgalaxy/insider-monitor/internal/config"
 	"github.com/accursedgalaxy/insider-monitor/internal/monitor"
 	"github.com/accursedgalaxy/insider-monitor/internal/storage"
+	"github.com/accursedgalaxy/insider-monitor/internal/web"
+	"github.com/joho/godotenv"
 )
 
 // WalletScanner interface defines the contract for wallet monitoring
@@ -22,8 +24,13 @@ type WalletScanner interface {
 }
 
 func main() {
+	// Load .env file if it exists
+	godotenv.Load()
+
 	testMode := flag.Bool("test", false, "Run in test mode with accelerated scanning")
 	configPath := flag.String("config", "config.json", "Path to configuration file")
+	webMode := flag.Bool("web", false, "Run with web UI")
+	webPort := flag.Int("port", 8080, "Port for web UI (when --web is used)")
 	flag.Parse()
 
 	// Load configuration
@@ -49,7 +56,7 @@ func main() {
 	if *testMode {
 		scanner = monitor.NewMockWalletMonitor()
 	} else {
-		scanner, err = monitor.NewWalletMonitor(cfg.NetworkURL, cfg.Wallets, &cfg.Scan)
+		scanner, err = monitor.NewWalletMonitor(cfg.NetworkURL, cfg.Wallets)
 		if err != nil {
 			log.Fatalf("failed to create wallet monitor: %v", err)
 		}
@@ -65,19 +72,39 @@ func main() {
 		log.Println("Console alerts enabled")
 	}
 
-	// Parse scan interval
+	// Parse the scan interval
 	scanInterval, err := time.ParseDuration(cfg.ScanInterval)
 	if err != nil {
 		log.Printf("invalid scan interval '%s', using default of 1 minute", cfg.ScanInterval)
 		scanInterval = time.Minute
 	}
 
-	runMonitor(scanner, alerter, cfg, scanInterval)
-}
-
-func runMonitor(scanner WalletScanner, alerter alerts.Alerter, cfg *config.Config, scanInterval time.Duration) {
+	// Initialize storage
 	storage := storage.New("./data")
 
+	// If web mode, start the web server
+	if *webMode {
+		log.Printf("Starting web UI on port %d", *webPort)
+
+		// Start the web server in a goroutine
+		go func() {
+			walletMonitor, ok := scanner.(*monitor.WalletMonitor)
+			if !ok {
+				log.Fatalf("Web mode requires the real wallet monitor, not a mock")
+			}
+
+			webServer := web.NewServer(cfg, walletMonitor, storage, *webPort)
+			if err := webServer.Start(); err != nil {
+				log.Fatalf("Failed to start web server: %v", err)
+			}
+		}()
+	}
+
+	// Start the monitor
+	runMonitor(scanner, alerter, cfg, scanInterval, storage)
+}
+
+func runMonitor(scanner WalletScanner, alerter alerts.Alerter, cfg *config.Config, scanInterval time.Duration, storage *storage.Storage) {
 	// Create buffered channels for graceful shutdown
 	interrupt := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -100,81 +127,53 @@ func runMonitor(scanner WalletScanner, alerter alerts.Alerter, cfg *config.Confi
 		previousData = make(map[string]*monitor.WalletData)
 	}
 
-	// Perform initial scan immediately
-	log.Println("Performing initial wallet scan...")
-	initialResults, err := scanner.ScanAllWallets()
-	if err != nil {
-		log.Printf("Warning: initial scan had errors: %v", err)
-	} else {
-		if err := storage.SaveWalletData(initialResults); err != nil {
-			log.Printf("Error saving initial data: %v", err)
-		}
-		lastSuccessfulScan = time.Now()
-		log.Printf("Initial scan complete. Found data for %d wallets", len(initialResults))
-		scanner.(*monitor.WalletMonitor).DisplayWalletOverview(initialResults)
-	}
+	// Set up timer for regular scans
+	ticker := time.NewTicker(scanInterval)
 
-	// Start monitoring in a separate goroutine
+	// Monitor loop
 	go func() {
-		ticker := time.NewTicker(scanInterval)
-		defer ticker.Stop()
+		// Run initial scan
+		log.Println("Running initial wallet scan...")
+		if latestData, err := runScan(scanner, alerter, previousData, cfg); err == nil {
+			previousData = latestData
+			if err := storage.SaveWalletData(latestData); err != nil {
+				log.Printf("Warning: Failed to save wallet data: %v", err)
+			}
+			lastSuccessfulScan = time.Now()
+			connectionLost = false
+		} else {
+			log.Printf("Initial scan failed: %v", err)
+			connectionLost = true
+		}
 
-		log.Printf("Starting monitoring loop with %v interval...", scanInterval)
-
+		// Regular scan loop
 		for {
 			select {
 			case <-ticker.C:
-				// Check if we've exceeded the maximum time between scans
-				if time.Since(lastSuccessfulScan) > maxTimeBetweenScans && !connectionLost {
-					connectionLost = true
-					log.Printf("No successful scan in %v, marking connection as lost", maxTimeBetweenScans)
-					continue
-				}
-
-				newResults, err := scanner.ScanAllWallets()
-				if err != nil {
-					log.Printf("Error scanning wallets: %v", err)
-					if !connectionLost {
-						connectionLost = true
-						log.Println("Connection appears to be lost, will suppress alerts until restored")
-					}
-					continue
-				}
-
-				// Connection restored check
-				if connectionLost {
-					connectionLost = false
-					log.Println("Connection restored, loading previous data to prevent false alerts")
-					if savedData, err := storage.LoadWalletData(); err == nil {
-						previousData = savedData
+				if latestData, err := runScan(scanner, alerter, previousData, cfg); err == nil {
+					// Successful scan
+					previousData = latestData
+					if err := storage.SaveWalletData(latestData); err != nil {
+						log.Printf("Warning: Failed to save wallet data: %v", err)
 					}
 					lastSuccessfulScan = time.Now()
-					continue
-				}
 
-				// Update last successful scan time
-				lastSuccessfulScan = time.Now()
-
-				// Process changes only if we have previous data
-				if len(previousData) > 0 {
-					changes := monitor.DetectChanges(previousData, newResults, cfg.Alerts.SignificantChange)
-					processChanges(changes, alerter, cfg.Alerts)
+					// Handle reconnection
+					if connectionLost {
+						log.Println("Connection restored. Monitoring resumed.")
+						connectionLost = false
+					}
 				} else {
-					// First scan, just store the data without generating alerts
-					log.Println("Initial scan completed, storing baseline data")
+					// Failed scan
+					log.Printf("Scan failed: %v", err)
+
+					// Check if connection has been lost for too long
+					if !connectionLost && time.Since(lastSuccessfulScan) > maxTimeBetweenScans {
+						log.Println("Connection appears to be lost. Will continue retrying.")
+						connectionLost = true
+					}
 				}
-
-				// Save new results
-				if err := storage.SaveWalletData(newResults); err != nil {
-					log.Printf("Error saving data: %v", err)
-				}
-				previousData = newResults
-
-				// Display wallet overview
-				scanner.(*monitor.WalletMonitor).DisplayWalletOverview(newResults)
-
 			case <-done:
-				log.Println("Monitoring loop stopped")
 				return
 			}
 		}
@@ -183,100 +182,168 @@ func runMonitor(scanner WalletScanner, alerter alerts.Alerter, cfg *config.Confi
 	// Wait for interrupt signal
 	<-interrupt
 	log.Println("Shutting down gracefully...")
-	if err := monitor.LogToFile("./data", "Monitor shutting down gracefully"); err != nil {
-		log.Printf("Failed to write shutdown log: %v", err)
-	}
+	ticker.Stop()
 	done <- true
-	time.Sleep(time.Second) // Give a moment for final cleanup
+	log.Println("Shutdown complete.")
 }
 
-func processChanges(changes []monitor.Change, alerter alerts.Alerter, alertCfg config.AlertConfig) {
-	for _, change := range changes {
-		var msg string
-		var level alerts.AlertLevel
-		var alertData map[string]interface{}
+func runScan(scanner WalletScanner, alerter alerts.Alerter, previousData map[string]*monitor.WalletData, cfg *config.Config) (map[string]*monitor.WalletData, error) {
+	log.Println("Scanning wallets...")
+	latestData, err := scanner.ScanAllWallets()
+	if err != nil {
+		return nil, fmt.Errorf("wallet scan failed: %w", err)
+	}
 
-		switch change.ChangeType {
-		case "new_wallet":
-			// Create a consolidated message for all tokens
-			var tokenDetails []string
-			tokenData := make(map[string]uint64)
-			tokenDecimals := make(map[string]uint8)
-			for mint, balance := range change.TokenBalances {
-				tokenDetails = append(tokenDetails, fmt.Sprintf("%s: %d", mint, balance))
-				tokenData[mint] = balance
-				tokenDecimals[mint] = 9 // Default decimals, adjust if you have actual decimals
-			}
-			msg = fmt.Sprintf("New wallet %s detected with %d tokens:\n%s",
-				change.WalletAddress,
-				len(change.TokenBalances),
-				strings.Join(tokenDetails, "\n"))
-			level = alerts.Warning
-			alertData = map[string]interface{}{
-				"token_balances": tokenData,
-				"token_decimals": tokenDecimals,
+	// Check for changes and send alerts
+	for address, walletData := range latestData {
+		previousWallet, exists := previousData[address]
+		if !exists {
+			// First time seeing this wallet, don't alert
+			log.Printf("New wallet detected: %s", address)
+			continue
+		}
+
+		// Compare token accounts
+		for mint, tokenAccount := range walletData.TokenAccounts {
+			// Skip if token is in the ignore list
+			if contains(cfg.Alerts.IgnoreTokens, mint) {
+				continue
 			}
 
-		case "new_token":
-			msg = fmt.Sprintf("New token %s (%s) detected in wallet with initial balance %d",
-				change.TokenSymbol, change.TokenMint, change.NewBalance)
-			level = alerts.Warning
-			alertData = map[string]interface{}{
-				"balance":  change.NewBalance,
-				"decimals": change.TokenDecimals,
-				"symbol":   change.TokenSymbol,
+			// Skip if balance is below minimum threshold
+			if float64(tokenAccount.Balance) < cfg.Alerts.MinimumBalance {
+				continue
 			}
 
-		case "balance_change":
-			msg = fmt.Sprintf("Balance change for %s (%s): from %d to %d (%.2f%%)",
-				change.TokenSymbol, change.TokenMint,
-				change.OldBalance, change.NewBalance, change.ChangePercent)
+			previousToken, existed := previousWallet.TokenAccounts[mint]
 
-			absChange := abs(change.ChangePercent)
-			switch {
-			case absChange >= (alertCfg.SignificantChange * 5):
-				level = alerts.Critical
-			case absChange >= (alertCfg.SignificantChange * 2):
-				level = alerts.Warning
-			default:
-				level = alerts.Info
+			if !existed {
+				// New token detected
+				sendTokenAlert(alerter, address, mint, 0, tokenAccount.Balance, tokenAccount.Symbol, "NEW_TOKEN", cfg)
+				continue
 			}
 
-			alertData = map[string]interface{}{
-				"old_balance":    change.OldBalance,
-				"new_balance":    change.NewBalance,
-				"decimals":       change.TokenDecimals,
-				"symbol":         change.TokenSymbol,
-				"change_percent": change.ChangePercent,
+			// Skip if no change in balance
+			if previousToken.Balance == tokenAccount.Balance {
+				continue
+			}
+
+			// Calculate percentage change
+			var percentChange float64
+			if previousToken.Balance > 0 {
+				percentChange = float64(tokenAccount.Balance-previousToken.Balance) / float64(previousToken.Balance)
+			} else if tokenAccount.Balance > 0 {
+				percentChange = 1.0 // 100% increase from zero
+			} else {
+				percentChange = 0.0
+			}
+
+			// If change exceeds the significant threshold, send an alert
+			if absFloat(percentChange) >= cfg.Alerts.SignificantChange {
+				changeType := "INCREASE"
+				if percentChange < 0 {
+					changeType = "DECREASE"
+				}
+				sendTokenAlert(alerter, address, mint, previousToken.Balance, tokenAccount.Balance, tokenAccount.Symbol, changeType, cfg)
 			}
 		}
 
-		if level >= alerts.Warning {
-			alert := alerts.Alert{
-				Timestamp:     time.Now(),
-				WalletAddress: change.WalletAddress,
-				TokenMint:     change.TokenMint,
-				AlertType:     change.ChangeType,
-				Message:       msg,
-				Level:         level,
-				Data:          alertData,
+		// Check for removed tokens (tokens that existed before but not now)
+		for mint, previousToken := range previousWallet.TokenAccounts {
+			// Skip if token is in the ignore list
+			if contains(cfg.Alerts.IgnoreTokens, mint) {
+				continue
 			}
 
-			if err := alerter.SendAlert(alert); err != nil {
-				log.Printf("failed to send alert: %v", err)
+			// Skip if balance is below minimum threshold
+			if float64(previousToken.Balance) < cfg.Alerts.MinimumBalance {
+				continue
 			}
-			if err := monitor.LogToFile("./data", msg); err != nil {
-				log.Printf("Failed to write log: %v", err)
-			}
-		} else {
-			if err := monitor.LogToFile("./data", fmt.Sprintf("INFO: %s", msg)); err != nil {
-				log.Printf("Failed to write info log: %v", err)
+
+			if _, exists := walletData.TokenAccounts[mint]; !exists {
+				// Token no longer exists in the wallet
+				sendTokenAlert(alerter, address, mint, previousToken.Balance, 0, previousToken.Symbol, "REMOVED", cfg)
 			}
 		}
 	}
+
+	return latestData, nil
 }
 
-func abs(x float64) float64 {
+func sendTokenAlert(alerter alerts.Alerter, walletAddress, tokenMint string, oldBalance, newBalance uint64, symbol string, changeType string, cfg *config.Config) {
+	var message string
+	var level alerts.AlertLevel
+	var absChange float64
+
+	data := map[string]interface{}{
+		"wallet_address": walletAddress,
+		"token_mint":     tokenMint,
+		"old_balance":    oldBalance,
+		"new_balance":    newBalance,
+		"token_symbol":   symbol,
+	}
+
+	if changeType == "NEW_TOKEN" {
+		message = fmt.Sprintf("New token %s (%s) detected in wallet with balance %d", symbol, tokenMint, newBalance)
+		level = alerts.Info
+	} else if changeType == "REMOVED" {
+		message = fmt.Sprintf("Token %s (%s) removed from wallet (previous balance: %d)", symbol, tokenMint, oldBalance)
+		level = alerts.Warning
+	} else {
+		// Calculate percentage change for increase/decrease
+		var percentChange float64
+		if oldBalance > 0 {
+			percentChange = float64(newBalance-oldBalance) / float64(oldBalance)
+			absChange = absFloat(percentChange)
+		} else {
+			percentChange = 1.0
+			absChange = 1.0
+		}
+
+		// Set alert level based on magnitude of change
+		if absChange >= cfg.Alerts.SignificantChange*5 {
+			level = alerts.Critical
+		} else if absChange >= cfg.Alerts.SignificantChange*2 {
+			level = alerts.Warning
+		} else {
+			level = alerts.Info
+		}
+
+		// Create message
+		percentStr := fmt.Sprintf("%.1f%%", percentChange*100)
+		if percentChange > 0 {
+			percentStr = "+" + percentStr
+		}
+
+		message = fmt.Sprintf("Token %s (%s) balance %s by %s from %d to %d", symbol, tokenMint, strings.ToLower(changeType), percentStr, oldBalance, newBalance)
+	}
+
+	// Send the alert
+	alert := alerts.Alert{
+		Timestamp:     time.Now(),
+		WalletAddress: walletAddress,
+		TokenMint:     tokenMint,
+		AlertType:     changeType,
+		Message:       message,
+		Level:         level,
+		Data:          data,
+	}
+
+	if err := alerter.SendAlert(alert); err != nil {
+		log.Printf("Failed to send alert: %v", err)
+	}
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
+func absFloat(x float64) float64 {
 	if x < 0 {
 		return -x
 	}

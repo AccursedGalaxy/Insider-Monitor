@@ -1,0 +1,245 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Quick stats cards -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="bg-blue-100 p-3 rounded-full mr-4">
+                <i class="fas fa-wallet text-blue-600"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Total Wallets</h3>
+                <p class="text-2xl font-bold">{{len .WalletData}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="bg-green-100 p-3 rounded-full mr-4">
+                <i class="fas fa-coins text-green-600"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Tokens Tracked</h3>
+                <p class="text-2xl font-bold" id="tokens-count">Calculating...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="bg-purple-100 p-3 rounded-full mr-4">
+                <i class="fas fa-clock text-purple-600"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Last Refresh</h3>
+                <p class="text-2xl font-bold" id="last-refresh">Calculating...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow mb-6">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <h3 class="text-lg font-medium">Recent Wallet Activity</h3>
+    </div>
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallet</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="recent-activity">
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg shadow">
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h3 class="text-lg font-medium">Monitoring Status</h3>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                <span class="text-sm">Monitor is running</span>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Network:</span>
+                    <span class="font-medium" id="network-url">Loading...</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Scan Interval:</span>
+                    <span class="font-medium" id="scan-interval">Loading...</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Alerts:</span>
+                    <span class="font-medium" id="alerts-status">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow">
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h3 class="text-lg font-medium">Quick Actions</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <a href="/wallets" class="flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors">
+                <div class="bg-indigo-100 p-2 rounded-md mr-3">
+                    <i class="fas fa-eye text-indigo-600"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium">View All Wallets</h4>
+                    <p class="text-xs text-gray-500">See detailed information for all wallets</p>
+                </div>
+            </a>
+
+            <a href="/config" class="flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors">
+                <div class="bg-indigo-100 p-2 rounded-md mr-3">
+                    <i class="fas fa-cog text-indigo-600"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium">Configure Monitor</h4>
+                    <p class="text-xs text-gray-500">Update settings and notification preferences</p>
+                </div>
+            </a>
+
+            <button id="manual-refresh" class="w-full flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors">
+                <div class="bg-indigo-100 p-2 rounded-md mr-3">
+                    <i class="fas fa-sync-alt text-indigo-600"></i>
+                </div>
+                <div class="text-left">
+                    <h4 class="font-medium">Manual Refresh</h4>
+                    <p class="text-xs text-gray-500">Force a refresh of wallet data now</p>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/wallets')
+            .then(response => response.json())
+            .then(data => {
+                updateDashboard(data);
+            })
+            .catch(error => console.error('Error fetching wallet data:', error));
+
+        document.getElementById('manual-refresh').addEventListener('click', function() {
+            document.getElementById('refresh-btn').click();
+        });
+    });
+
+    function updateDashboard(walletData) {
+        // Calculate total tokens
+        let tokensCount = 0;
+        let recentActivityHTML = '';
+        let lastUpdated = new Date(0);
+
+        // Prepare data for table
+        const activityData = [];
+
+        Object.entries(walletData).forEach(([address, wallet]) => {
+            Object.entries(wallet.token_accounts).forEach(([mint, token]) => {
+                tokensCount++;
+
+                const updatedDate = new Date(token.last_updated);
+                if (updatedDate > lastUpdated) {
+                    lastUpdated = updatedDate;
+                }
+
+                activityData.push({
+                    wallet: address,
+                    walletShort: address.substring(0, 4) + '...' + address.substring(address.length - 4),
+                    mint,
+                    mintShort: mint.substring(0, 4) + '...' + mint.substring(mint.length - 4),
+                    symbol: token.symbol || 'Unknown',
+                    balance: token.balance / Math.pow(10, token.decimals || 0),
+                    lastUpdated: updatedDate
+                });
+            });
+        });
+
+        // Sort by last updated, newest first
+        activityData.sort((a, b) => b.lastUpdated - a.lastUpdated);
+
+        // Take only top 5
+        const recentActivity = activityData.slice(0, 5);
+
+        if (recentActivity.length > 0) {
+            recentActivityHTML = recentActivity.map(item => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm">
+                            <a href="/wallets/${item.wallet}" class="text-indigo-600 hover:text-indigo-900">${item.walletShort}</a>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm">${item.symbol} (${item.mintShort})</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm">${item.balance.toLocaleString()}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm">${timeAgo(item.lastUpdated)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <a href="/wallets/${item.wallet}" class="text-indigo-600 hover:text-indigo-900">Details</a>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            recentActivityHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No activity data available</td>
+                </tr>
+            `;
+        }
+
+        // Update the DOM
+        document.getElementById('tokens-count').textContent = tokensCount;
+        document.getElementById('last-refresh').textContent = lastUpdated.getTime() > 0 ? timeAgo(lastUpdated) : 'Never';
+        document.getElementById('recent-activity').innerHTML = recentActivityHTML;
+
+        // Update monitoring status
+        if (Object.keys(walletData).length > 0) {
+            const networkUrl = walletData[Object.keys(walletData)[0]].network_url || 'Unknown';
+            document.getElementById('network-url').textContent = networkUrl;
+            document.getElementById('scan-interval').textContent = '{{.Config.ScanInterval}}';
+            document.getElementById('alerts-status').textContent = '{{if .Config.Discord.Enabled}}Discord{{else}}Console{{end}}';
+        }
+    }
+
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + ' years ago';
+
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + ' months ago';
+
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + ' days ago';
+
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + ' hours ago';
+
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + ' minutes ago';
+
+        return Math.floor(seconds) + ' seconds ago';
+    }
+</script>

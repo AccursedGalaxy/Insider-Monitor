@@ -31,5 +31,7 @@ config.json
 .DS_Store
 Thumbs.db
 
+.cache/
+
 # Enviroment
 .env

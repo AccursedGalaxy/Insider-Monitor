@@ -1,0 +1,134 @@
+site_name: Solana Insider Monitor
+site_description: Monitor Solana wallet activities, track token balance changes, and receive real-time alerts
+site_url: https://accursedgalaxy.github.io/Insider-Monitor/
+repo_url: https://github.com/AccursedGalaxy/Insider-Monitor
+repo_name: AccursedGalaxy/Insider-Monitor
+site_dir: site
+use_directory_urls: false
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - navigation.tracking
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  palette:
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+      primary: indigo
+      accent: purple
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+      primary: indigo
+      accent: purple
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/wallet-outline
+  # Ensuring static_templates directory is properly configured
+  static_templates:
+    - 404.html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quick-start.md
+    - Running Modes: getting-started/running-modes.md
+  - Configuration:
+    - Configuration Guide: configuration/index.md
+    - Network Settings: configuration/network-settings.md
+    - Wallet Settings: configuration/wallet-settings.md
+    - Alert Settings: configuration/alert-settings.md
+    - Discord Integration: configuration/discord-integration.md
+  - Features:
+    - Overview: features/index.md
+    - Wallet Monitoring: features/wallet-monitoring.md
+    - Alert System: features/alert-system.md
+    - Web Interface: features/web-interface.md
+    - Storage System: features/storage-system.md
+  - API Reference:
+    - Overview: api/index.md
+    - Authentication: api/authentication.md
+    - Endpoints: api/endpoints.md
+    - Integration Examples: api/integration-examples.md
+  - Developer Guide:
+    - Project Structure: developer/project-structure.md
+    - Contributing: developer/contributing.md
+    - Building from Source: developer/building.md
+    - Testing: developer/testing.md
+    - Feature Ideas: developer/feature-ideas.md
+  - Troubleshooting: troubleshooting.md
+
+plugins:
+  - search
+  - tags
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/AccursedGalaxy
+    - icon: fontawesome/brands/twitter
+      link: https://x.com/AccursedGalaxy
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/bohrer-robin
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/7vY9ZBPdya
+  # Fix Google Analytics configuration
+  analytics:
+    provider: google
+    property: !ENV [GOOGLE_ANALYTICS_KEY, '']
+
+# Update asset paths to include the base URL
+extra_css:
+  - assets/css/custom.css
+
+extra_javascript:
+  - assets/js/extra.js
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.arithmatex:
+      generic: true
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+copyright: |
+  &copy; 2025 <a href="https://github.com/AccursedGalaxy" target="_blank" rel="noopener">Accursed Galaxy</a>
