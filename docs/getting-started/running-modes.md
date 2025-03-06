@@ -111,6 +111,53 @@ By default, Solana Insider Monitor looks for `config.json` in the current direct
 go run cmd/monitor/main.go -config /path/to/custom-config.json
 ```
 
+## Scan Configuration Modes
+
+Solana Insider Monitor supports different scanning modes to control which tokens are monitored:
+
+### Global Scan Settings
+
+You can set a global scan mode that applies to all wallets:
+
+```json
+{
+  "scan": {
+    "scan_mode": "all",              // "all", "whitelist", or "blacklist"
+    "include_tokens": [],            // Used with "whitelist" mode
+    "exclude_tokens": []             // Used with "blacklist" mode
+  }
+}
+```
+
+### Per-Wallet Scan Settings
+
+You can also configure different scan modes for individual wallets:
+
+```json
+{
+  "wallet_configs": {
+    "52C9T2T7JRojtxumYnYZhyUmrN7kqzvCLc4Ksvjk7TxD": {
+      "scan": {
+        "scan_mode": "whitelist",
+        "include_tokens": [
+          "So11111111111111111111111111111111111111112",  // SOL
+          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  // USDC
+        ],
+        "exclude_tokens": []
+      }
+    }
+  }
+}
+```
+
+### Scan Modes Explained
+
+- **all**: Monitor all tokens in the wallet (default)
+- **whitelist**: Only monitor tokens specified in the `include_tokens` list
+- **blacklist**: Monitor all tokens except those in the `exclude_tokens` list
+
+This system allows you to precisely control which tokens trigger alerts, whether you want to focus on specific tokens or exclude known noisy ones.
+
 ## Environment Variables
 
 Solana Insider Monitor supports configuration via environment variables, which can be useful in containerized environments:

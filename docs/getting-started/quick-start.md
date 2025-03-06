@@ -34,6 +34,11 @@ Edit `config.json` with your favorite text editor:
         "YOUR_WALLET_ADDRESS_2"
     ],
     "scan_interval": "1m",
+    "scan": {
+        "scan_mode": "all",
+        "include_tokens": [],
+        "exclude_tokens": []
+    },
     "alerts": {
         "minimum_balance": 1000,
         "significant_change": 0.20,
@@ -49,6 +54,12 @@ Edit `config.json` with your favorite text editor:
 
 !!! warning "Replace Wallet Addresses"
     Make sure to replace `YOUR_WALLET_ADDRESS_1` and `YOUR_WALLET_ADDRESS_2` with actual Solana wallet addresses you want to monitor.
+
+!!! tip "Scan Configuration"
+    The default `scan_mode` is "all", which monitors all tokens. For better focus, consider:
+    - "whitelist" mode to monitor only specific tokens
+    - "blacklist" mode to exclude noisy tokens
+    You can also configure different scan modes for individual wallets using the `wallet_configs` setting.
 
 ### Step 3: Run
 

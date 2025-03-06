@@ -53,6 +53,7 @@ nav:
     - Configuration Guide: configuration/index.md
     - Network Settings: configuration/network-settings.md
     - Wallet Settings: configuration/wallet-settings.md
+    - Scan Configuration: configuration/scan-configuration.md
     - Alert Settings: configuration/alert-settings.md
     - Discord Integration: configuration/discord-integration.md
   - Features:
@@ -105,6 +106,7 @@ extra_css:
 
 extra_javascript:
   - assets/js/extra.js
+  - https://unpkg.com/mermaid/dist/mermaid.min.js
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -116,7 +118,11 @@ markdown_extensions:
       generic: true
   - footnotes
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.mark
   - attr_list
   - md_in_html

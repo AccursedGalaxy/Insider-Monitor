@@ -47,16 +47,29 @@ Solana Insider Monitor comes packed with powerful features designed to give you 
 Monitor an unlimited number of Solana wallets simultaneously, with each wallet's tokens tracked independently. Perfect for tracking multiple accounts, projects, or investment portfolios.
 
 ```mermaid
-graph LR
-    A[Monitor] --> B[Wallet 1]
-    A --> C[Wallet 2]
-    A --> D[Wallet 3]
-    B --> E[Token A]
-    B --> F[Token B]
-    C --> G[Token C]
-    D --> H[Token A]
-    D --> I[Token D]
+graph LR;
+    A["Monitor"] --> B["Wallet 1"];
+    A --> C["Wallet 2"];
+    A --> D["Wallet 3"];
+    B --> E["Token A"];
+    B --> F["Token B"];
+    C --> G["Token C"];
+    D --> H["Token A"];
+    D --> I["Token D"];
 ```
+
+### Advanced Token Filtering
+
+Control exactly which tokens are monitored with flexible scan modes:
+
+- **Global configuration**: Set default scan behavior for all wallets
+- **Per-wallet customization**: Configure different scan modes for different wallets
+- **Three scan modes**:
+    - **All**: Monitor all tokens in a wallet
+    - **Whitelist**: Only monitor specific tokens you care about
+    - **Blacklist**: Monitor all tokens except those you specify
+
+This allows you to focus on important tokens and reduce noise from airdrops or dust.
 
 ### Real-Time Alerts
 
