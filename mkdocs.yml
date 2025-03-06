@@ -6,6 +6,9 @@ repo_name: AccursedGalaxy/Insider-Monitor
 site_dir: site
 use_directory_urls: false
 
+# Add this to generate index.html instead of index/
+strict: true
+
 theme:
   name: material
   features:
@@ -99,11 +102,12 @@ extra:
     provider: google
     property: !ENV [GOOGLE_ANALYTICS_KEY, '']
 
+# Update asset paths to include the base URL
 extra_css:
-  - assets/css/custom.css
+  - /Insider-Monitor/assets/css/custom.css
 
 extra_javascript:
-  - assets/js/extra.js
+  - /Insider-Monitor/assets/js/extra.js
 
 markdown_extensions:
   - pymdownx.highlight:

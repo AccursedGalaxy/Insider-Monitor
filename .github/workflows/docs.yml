@@ -56,12 +56,14 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
 
-          # Create a .nojekyll file to prevent GitHub Pages from using Jekyll
+          # Create a .nojekyll file in docs directory (this exists already)
           touch docs/.nojekyll
-          touch site/.nojekyll
 
-          # Build the documentation first to verify it works
+          # Build the documentation first to create the site directory
           mkdocs build --verbose
+
+          # Now we can create .nojekyll in the site directory since it exists
+          touch site/.nojekyll
 
           # Check if any assets were generated
           echo "Checking for CSS and JS files..."
@@ -69,6 +71,7 @@ jobs:
 
           # Deploy with debug options
           mkdocs gh-deploy --force --verbose
+
       - name: Debug Material Theme Installation
         run: |
           # Check if Material theme is installed correctly
