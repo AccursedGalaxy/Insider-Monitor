@@ -1,0 +1,63 @@
+{
+  "base_url": "http://localhost:8080",
+  "concurrency": 20,
+  "duration": "30s",
+  "ramp_up_period": "5s",
+  "verbose": true,
+  "api_endpoints": [
+    {
+      "url": "/health",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 1,
+      "requires_auth": false
+    },
+    {
+      "url": "/api/v1/wallets",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 5,
+      "requires_auth": false
+    },
+    {
+      "url": "/api/v1/status",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 2,
+      "requires_auth": false
+    },
+    {
+      "url": "/api/v1/status/scan",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 2,
+      "requires_auth": false
+    },
+    {
+      "url": "/api/v1/alerts",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 1,
+      "requires_auth": false
+    },
+    {
+      "url": "/api/v1/wallets/55kBY9yxqQzj2zxZqRkqENYq6R8PkXmn5GKyQN9YeVFr",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 3,
+      "requires_auth": false
+    },
+    {
+      "url": "/api/v1/wallets/55kBY9yxqQzj2zxZqRkqENYq6R8PkXmn5GKyQN9YeVFr/tokens",
+      "method": "GET",
+      "expected_code": 200,
+      "weight": 3,
+      "requires_auth": false
+    }
+  ],
+  "websocket_url": "ws://localhost:8080/ws",
+  "message_types": ["subscribe", "unsubscribe", "ping"],
+  "message_rate": 2.0,
+  "auth_enabled": false,
+  "auth_type": "none"
+}
