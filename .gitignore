@@ -13,6 +13,9 @@ dist/
 **/*/main
 **/*/*.bin
 
+.cache/
+config.json
+
 # Specific binaries in perftest and other directories
 **/perftest/perftest
 **/perftest/server
