@@ -1,8 +1,9 @@
 {
     "network_url": "https://api.mainnet-beta.solana.com",
     "wallets": [
-        "55kBY9yxqQzj2zxZqRkqENYq6R8PkXmn5GKyQN9YeVFr",
-        "DWuopnuSqYdBhCXqxfqjqzPGibnhkj6SQqFvgC4jkvjF"
+        "CvQk2xkXtiMj2JqqVx1YZkeSqQ7jyQkNqqjeNE1jPTfc",
+        "FjmRj8y9xfDaj5Aygq88t5jAFbpxrbZ16JNPPG1sx9FQ",
+        "6AwqhVU5rx3sMovgCwc5KE1prBZaZZJSGgYSKmX8qg31"
     ],
     "scan_interval": "1m",
     "alerts": {
@@ -14,5 +15,13 @@
         "enabled": false,
         "webhook_url": "",
         "channel_id": ""
+    },
+    "scan": {
+        "scan_mode": "all",
+        "include_tokens": [
+            "TokenAddressHere",
+            "AnotherTokenAddress"
+        ],
+        "exclude_tokens": []
     }
-} 
+}

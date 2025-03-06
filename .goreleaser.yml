@@ -1,6 +1,4 @@
-before:
-  hooks:
-    - go mod tidy
+version: 2
 
 builds:
   - main: ./cmd/monitor/main.go
@@ -8,8 +6,8 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
-      - darwin
       - windows
+      - darwin
     goarch:
       - amd64
       - arm64
@@ -23,12 +21,4 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
-
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
-      - '^chore:' 
+        format: zip 

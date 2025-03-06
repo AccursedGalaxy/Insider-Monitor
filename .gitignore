@@ -1,5 +1,6 @@
 # Binaries and build output
 /bin/
+/dist/
 *.exe
 *.exe~
 *.dll
@@ -30,5 +31,7 @@ config.json
 .DS_Store
 Thumbs.db
 
-
 .cache/
+
+# Enviroment
+.env

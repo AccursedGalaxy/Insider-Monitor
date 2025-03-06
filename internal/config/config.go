@@ -36,6 +36,12 @@ type AlertConfig struct {
 	IgnoreTokens      []string `json:"ignore_tokens"`      // Tokens to ignore
 }
 
+type ScanConfig struct {
+	IncludeTokens []string `json:"include_tokens"` // Specific tokens to include (if empty, include all)
+	ExcludeTokens []string `json:"exclude_tokens"` // Specific tokens to exclude
+	ScanMode      string   `json:"scan_mode"`      // "all", "whitelist", or "blacklist"
+}
+
 type DiscordConfig struct {
 	Enabled    bool   `json:"enabled"`
 	WebhookURL string `json:"webhook_url"`
