@@ -1,6 +1,7 @@
 # Feature Ideas
 
-This document outlines potential features and enhancements for Solana Insider Monitor. As an open source project, we welcome contributions that implement these ideas or suggest new ones.
+This document outlines potential features and enhancements for Solana Insider Monitor.
+As an open source project, we welcome contributions that implement these ideas or suggest new ones.
 
 ## High Priority Features
 
@@ -25,6 +26,8 @@ Add the ability to assign human-readable labels to wallet addresses for easier i
     ]
 }
 ```
+
+Make sure to provide the option to display these labels in the console output, notifications, and the web interface.
 
 #### Wallet Grouping
 Support for organizing wallets into logical groups:
@@ -92,9 +95,6 @@ Support for different configuration profiles (e.g., "high alert", "normal monito
 }
 ```
 
-#### Smart Alerts
-Implement machine learning to detect unusual activity patterns, not just percentage changes.
-
 #### Alert Routing Rules
 Create rules for routing different types of alerts to different channels:
 
@@ -117,7 +117,6 @@ Create rules for routing different types of alerts to different channels:
 Add advanced Discord webhook features:
 
 ```json
-{
     "discord": {
         "enabled": true,
         "webhook_url": "https://discord.com/api/webhooks/your-webhook-url",
@@ -157,17 +156,6 @@ Add tools for analyzing historical wallet activity and visualizing trends.
 
 #### Token Price Integration
 Include token price data to show value changes in USD or other currencies.
-
-### UI Improvements
-
-#### Customizable Dashboard
-Allow users to create custom dashboard layouts with the metrics they care about most.
-
-#### Mobile Responsive Design
-Optimize the web interface for mobile devices.
-
-#### Dark/Light Theme Toggle
-Add user preference for UI appearance.
 
 ## Lower Priority Features
 
