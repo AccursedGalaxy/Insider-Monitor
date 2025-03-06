@@ -1,6 +1,4 @@
-# TODO
-
-## Upgrade Plan:
+# Upgrade Plan:
 **Phase 1:** Create API endpoints in the current application
 Add basic CRUD endpoints for configuration
 Implement configuration updating while running
@@ -12,13 +10,23 @@ Split codebase into backend and frontend services
 Implement proper API communication
 Set up WebSockets for real-time updates
 
-Key considerations:
-1. Architecture separation
-2. API design
-3. Real-time communication
-4. Single command startup
-5. Performance optimization
-6. Data handling concerns</think># Phase 2 Implementation Plan: Refactoring Insider-Monitor into Separate Backend and Frontend
+
+# UP NEXT:
+**Complete Phase 2**
+Finalize any remaining WebSocket implementation details
+Ensure complete error handling across services
+Add comprehensive API documentation
+Implement thorough testing for both services
+
+**Prepare for Phase 3**
+Design database schema
+Create migration strategy for existing data
+Implement database connection handling
+
+**Technical Debt to Address**
+Add proper logging throughout the application
+Implement metrics collection for monitoring
+Complete documentation for deployment and configuration
 
 ## 1. Architecture Design
 
@@ -141,66 +149,6 @@ cmd/
    - Implement clean shutdown handling for both services
    - Add health checks to ensure both services are running
 
-2. **Orchestration Logic**:
-```go
-func main() {
-    ctx, cancel := context.WithCancel(context.Background())
-    defer cancel()
-
-    // Set up signal handling for graceful shutdown
-    signalCh := make(chan os.Signal, 1)
-    signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-
-    // Configuration shared between services
-    cfg, err := config.LoadConfig("config.json")
-    if err != nil {
-        log.Fatalf("Failed to load config: %v", err)
-    }
-
-    // Start backend service
-    backendCtx, backendCancel := context.WithCancel(ctx)
-    backendErrCh := make(chan error, 1)
-    go func() {
-        backendErrCh <- startBackendService(backendCtx, cfg)
-    }()
-
-    // Start frontend service
-    frontendCtx, frontendCancel := context.WithCancel(ctx)
-    frontendErrCh := make(chan error, 1)
-    go func() {
-        frontendErrCh <- startFrontendService(frontendCtx, cfg)
-    }()
-
-    // Wait for interrupt or error
-    select {
-    case <-signalCh:
-        log.Println("Received shutdown signal")
-    case err := <-backendErrCh:
-        log.Printf("Backend service error: %v", err)
-    case err := <-frontendErrCh:
-        log.Printf("Frontend service error: %v", err)
-    }
-
-    // Graceful shutdown
-    log.Println("Shutting down services...")
-    backendCancel()
-    frontendCancel()
-
-    // Wait with timeout for services to shut down
-    shutdownTimeout := time.Second * 10
-    shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
-    defer shutdownCancel()
-
-    // Wait for both services to shut down or timeout
-    select {
-    case <-shutdownCtx.Done():
-        log.Println("Shutdown timed out, forcing exit")
-    case <-waitForShutdown(backendErrCh, frontendErrCh):
-        log.Println("All services shut down successfully")
-    }
-}
-```
-
 ### Communication Between Services
 1. **API Gateway**:
    - Configure reverse proxy to route requests to appropriate services
@@ -219,48 +167,10 @@ func main() {
    - Implement asset optimization for frontend
    - Create single binary distribution
 
-## 6. Implementation Steps and Timeline
 
-1. **Week 1: Infrastructure Setup**
-   - Set up project structure
-   - Create API boilerplate
-   - Implement authentication system
 
-2. **Week 2: Backend API Development**
-   - Migrate existing API endpoints
-   - Implement new RESTful API
-   - Add API tests
 
-3. **Week 3: WebSocket Implementation**
-   - Create WebSocket server
-   - Implement message protocol
-   - Add real-time update system
-
-4. **Week 4: Frontend Framework**
-   - Set up React application
-   - Create core components
-   - Implement API client services
-
-5. **Week 5: Frontend UI Development**
-   - Build dashboard interface
-   - Implement wallet monitoring views
-   - Create configuration management UI
-
-6. **Week 6: Integration and Testing**
-   - Connect frontend to backend API
-   - Implement WebSocket client
-   - Add end-to-end tests
-
-7. **Week 7: Performance Optimization**
-   - Optimize API performance
-   - Add caching mechanisms
-   - Implement data virtualization
-
-8. **Week 8: Finalization**
-   - Complete orchestration logic
-   - Add documentation
-   - Finalize deployment scripts
-
+# UPCOMING PHASES
 
 **Phase 3:** Add database persistence
 Implement database storage for configuration
@@ -271,6 +181,9 @@ Migrate file-based storage to database
 Implement additional dashboard controls
 Add monitoring statistics and historical data
 Create alert management in the UI
+
+
+# OTHER STUFF
 
 ## Alerts and Shizz:
 - [ ] Test Alerts To Console, Web and Discord
