@@ -53,25 +53,38 @@ jobs:
 
       - name: Deploy documentation
         run: |
+      - name: Deploy documentation
+        run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
 
-          # Create a .nojekyll file in docs directory (this exists already)
+          # Create a .nojekyll file in docs directory
           touch docs/.nojekyll
 
-          # Build the documentation first to create the site directory
+          # Build the documentation
           mkdocs build --verbose
 
-          # Now we can create .nojekyll in the site directory since it exists
+          # Create .nojekyll in site directory
           touch site/.nojekyll
 
-          # Check if any assets were generated
-          echo "Checking for CSS and JS files..."
-          find site -name "*.css" -o -name "*.js"
+          # Ensure .nojekyll will be at the root of gh-pages branch
+          # This is the critical step!
+          echo "Deploying with .nojekyll file..."
+          mkdocs gh-deploy --force --verbose --config-file mkdocs.yml
 
-          # Deploy with debug options
-          mkdocs gh-deploy --force --verbose
-
+          # Verify deployment
+          echo "Checking if .nojekyll file exists in gh-pages branch"
+          git checkout gh-pages
+          ls -la
+          if [ -f ".nojekyll" ]; then
+            echo ".nojekyll file exists in gh-pages branch root"
+          else
+            echo ".nojekyll file MISSING in gh-pages branch root"
+            echo "Creating .nojekyll file in gh-pages branch root"
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Add .nojekyll file to root of gh-pages branch"
+            git push origin gh-pages
       - name: Debug Material Theme Installation
         run: |
           # Check if Material theme is installed correctly
