@@ -43,17 +43,17 @@
     </div>
     <div class="p-6">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200" id="dashboard-activity-table">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallet</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="recent-activity">
+                <tbody class="bg-white divide-y divide-gray-200" id="activity-body">
                     <tr>
                         <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading data...</td>
                     </tr>
@@ -128,12 +128,50 @@
     </div>
 </div>
 
+<div class="bg-white rounded-lg shadow">
+    <div class="border-b border-gray-200 px-6 py-4">
+        <h3 class="text-lg font-medium">Token Summary</h3>
+    </div>
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="dashboard-tokens-table">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Balance</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallets</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="tokens-body">
+                    <!-- Token rows rendered by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/wallets')
             .then(response => response.json())
             .then(data => {
                 updateDashboard(data);
+
+                // Initialize table sorting AFTER the data is rendered
+                if (document.getElementById('dashboard-activity-table')) {
+                    new TableSorter('dashboard-activity-table', {
+                        initialColumn: 4, // Sort by time initially
+                        initialDirection: 'desc' // Most recent first
+                    });
+                }
+
+                if (document.getElementById('dashboard-tokens-table')) {
+                    new TableSorter('dashboard-tokens-table', {
+                        initialColumn: 2, // Sort by balance initially
+                        initialDirection: 'desc' // Highest balance first
+                    });
+                }
             })
             .catch(error => console.error('Error fetching wallet data:', error));
 
@@ -179,7 +217,11 @@
         const recentActivity = activityData.slice(0, 5);
 
         if (recentActivity.length > 0) {
-            recentActivityHTML = recentActivity.map(item => `
+            recentActivityHTML = recentActivity.map(item => {
+                // Store raw number for sorting
+                const numericBalance = item.balance;
+
+                return `
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm">
@@ -189,17 +231,18 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm">${item.symbol} (${item.mintShort})</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="${numericBalance}">
                         <div class="text-sm">${item.balance.toLocaleString()}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="${item.lastUpdated.getTime()}">
                         <div class="text-sm">${timeAgo(item.lastUpdated)}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <a href="/wallets/${item.wallet}" class="text-indigo-600 hover:text-indigo-900">Details</a>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         } else {
             recentActivityHTML = `
                 <tr>
@@ -211,7 +254,7 @@
         // Update the DOM
         document.getElementById('tokens-count').textContent = tokensCount;
         document.getElementById('last-refresh').textContent = lastUpdated.getTime() > 0 ? timeAgo(lastUpdated) : 'Never';
-        document.getElementById('recent-activity').innerHTML = recentActivityHTML;
+        document.getElementById('activity-body').innerHTML = recentActivityHTML;
 
         // Update monitoring status
         if (Object.keys(walletData).length > 0) {
@@ -220,6 +263,70 @@
             document.getElementById('scan-interval').textContent = '{{.Config.ScanInterval}}';
             document.getElementById('alerts-status').textContent = '{{if .Config.Discord.Enabled}}Discord{{else}}Console{{end}}';
         }
+
+        // Create and populate the token summary table
+        createTokenSummary(walletData);
+    }
+
+    // New function to create token summary
+    function createTokenSummary(walletData) {
+        // Create a map to track tokens across wallets
+        const tokenMap = new Map();
+
+        // Process all wallets and tokens
+        Object.entries(walletData).forEach(([address, wallet]) => {
+            Object.entries(wallet.token_accounts).forEach(([mint, token]) => {
+                // Get or create token summary
+                if (!tokenMap.has(mint)) {
+                    tokenMap.set(mint, {
+                        mint: mint,
+                        symbol: token.symbol || 'Unknown',
+                        totalBalance: 0,
+                        wallets: new Set(),
+                        decimals: token.decimals || 0
+                    });
+                }
+
+                const tokenSummary = tokenMap.get(mint);
+                tokenSummary.totalBalance += token.balance;
+                tokenSummary.wallets.add(address);
+            });
+        });
+
+        // Convert to array and sort by total balance
+        const tokenSummaries = Array.from(tokenMap.values());
+
+        // Sort by total balance (high to low)
+        tokenSummaries.sort((a, b) => b.totalBalance - a.totalBalance);
+
+        // Generate HTML for the token summary table
+        const tokensHTML = tokenSummaries.map(token => {
+            // Calculate the actual numeric value for proper sorting
+            const numericBalance = token.totalBalance / Math.pow(10, token.decimals);
+            const formattedBalance = numericBalance.toLocaleString();
+
+            return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium">${token.mint.substring(0, 6)}...${token.mint.substring(token.mint.length - 4)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm">${token.symbol}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="${numericBalance}">
+                        <div class="text-sm">${formattedBalance}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap" data-sort-value="${token.wallets.size}">
+                        <div class="text-sm">${token.wallets.size}</div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Update the tokens table
+        document.getElementById('tokens-body').innerHTML = tokensHTML.length > 0
+            ? tokensHTML
+            : '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No tokens found</td></tr>';
     }
 
     function timeAgo(date) {

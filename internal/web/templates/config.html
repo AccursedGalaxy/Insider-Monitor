@@ -42,12 +42,80 @@
                 <div>
                     <h4 class="text-md font-medium mb-2">Scan Settings</h4>
                     <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center mb-3">
                             <div>
                                 <h5 class="text-sm font-medium text-gray-700">Scan Interval</h5>
                                 <p class="text-gray-500 text-sm">{{.Config.ScanInterval}}</p>
                             </div>
                         </div>
+
+                        <div class="pt-3 border-t border-gray-200">
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">Global Scan Mode</h5>
+                            <div class="flex items-center">
+                                <p class="text-gray-500 text-sm mr-2">{{.Config.Scan.ScanMode}}</p>
+                                <span class="text-xs px-3 py-1 rounded-full
+                                    {{if eq .Config.Scan.ScanMode "all"}}
+                                    bg-green-100 text-green-800
+                                    {{else if eq .Config.Scan.ScanMode "whitelist"}}
+                                    bg-blue-100 text-blue-800
+                                    {{else if eq .Config.Scan.ScanMode "blacklist"}}
+                                    bg-yellow-100 text-yellow-800
+                                    {{else}}
+                                    bg-gray-100 text-gray-800
+                                    {{end}}
+                                ">
+                                    {{if eq .Config.Scan.ScanMode "all"}}
+                                    All Tokens
+                                    {{else if eq .Config.Scan.ScanMode "whitelist"}}
+                                    Whitelist
+                                    {{else if eq .Config.Scan.ScanMode "blacklist"}}
+                                    Blacklist
+                                    {{else}}
+                                    Custom
+                                    {{end}}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{if or (eq .Config.Scan.ScanMode "whitelist") (gt (len .Config.Scan.IncludeTokens) 0)}}
+                        <div class="mt-3">
+                            <h5 class="text-sm font-medium text-gray-700 mb-1">Included Tokens</h5>
+                            <div class="space-y-2 max-h-40 overflow-y-auto">
+                                {{if gt (len .Config.Scan.IncludeTokens) 0}}
+                                    {{range .Config.Scan.IncludeTokens}}
+                                    <div class="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                                        <p class="text-sm font-mono">{{.}}</p>
+                                        <a href="https://explorer.solana.com/address/{{.}}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </div>
+                                    {{end}}
+                                {{else}}
+                                <p class="text-gray-500 text-sm italic">No tokens specified</p>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
+
+                        {{if or (eq .Config.Scan.ScanMode "blacklist") (gt (len .Config.Scan.ExcludeTokens) 0)}}
+                        <div class="mt-3">
+                            <h5 class="text-sm font-medium text-gray-700 mb-1">Excluded Tokens</h5>
+                            <div class="space-y-2 max-h-40 overflow-y-auto">
+                                {{if gt (len .Config.Scan.ExcludeTokens) 0}}
+                                    {{range .Config.Scan.ExcludeTokens}}
+                                    <div class="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                                        <p class="text-sm font-mono">{{.}}</p>
+                                        <a href="https://explorer.solana.com/address/{{.}}" target="_blank" class="text-indigo-600 hover:text-indigo-900">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </div>
+                                    {{end}}
+                                {{else}}
+                                <p class="text-gray-500 text-sm italic">No tokens specified</p>
+                                {{end}}
+                            </div>
+                        </div>
+                        {{end}}
                     </div>
                 </div>
 
@@ -138,6 +206,78 @@
                     </div>
                 </div>
 
+                {{if .Config.WalletConfigs}}
+                <div>
+                    <h4 class="text-md font-medium mb-2">Wallet-Specific Configurations</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-2 flex justify-between items-center">
+                            <h5 class="text-sm font-medium text-gray-700">Custom Wallet Settings</h5>
+                            <span class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full">{{len .Config.WalletConfigs}} custom configs</span>
+                        </div>
+
+                        <div class="space-y-4 max-h-80 overflow-y-auto">
+                            {{range $wallet, $config := .Config.WalletConfigs}}
+                            <div class="bg-white p-3 rounded border border-gray-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-sm font-medium font-mono">{{$wallet}}</p>
+                                    <a href="/wallets/{{$wallet}}" class="text-indigo-600 hover:text-indigo-900">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+
+                                {{if $config.Scan}}
+                                <div class="ml-2 border-l-2 border-indigo-200 pl-3">
+                                    <div class="mb-2">
+                                        <span class="text-xs font-medium text-gray-700">Scan Mode:</span>
+                                        <span class="text-xs px-2 py-0.5 ml-1 rounded-full
+                                            {{if eq $config.Scan.ScanMode "all"}}
+                                            bg-green-100 text-green-800
+                                            {{else if eq $config.Scan.ScanMode "whitelist"}}
+                                            bg-blue-100 text-blue-800
+                                            {{else if eq $config.Scan.ScanMode "blacklist"}}
+                                            bg-yellow-100 text-yellow-800
+                                            {{else}}
+                                            bg-gray-100 text-gray-800
+                                            {{end}}
+                                        ">
+                                            {{$config.Scan.ScanMode}}
+                                        </span>
+                                    </div>
+
+                                    {{if and $config.Scan.IncludeTokens (gt (len $config.Scan.IncludeTokens) 0)}}
+                                    <div class="mb-2">
+                                        <span class="text-xs font-medium text-gray-700">Include Tokens:</span>
+                                        <div class="mt-1 space-y-1">
+                                            {{range $config.Scan.IncludeTokens}}
+                                            <div class="flex items-center text-xs">
+                                                <span class="font-mono">{{.}}</span>
+                                            </div>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                    {{end}}
+
+                                    {{if and $config.Scan.ExcludeTokens (gt (len $config.Scan.ExcludeTokens) 0)}}
+                                    <div>
+                                        <span class="text-xs font-medium text-gray-700">Exclude Tokens:</span>
+                                        <div class="mt-1 space-y-1">
+                                            {{range $config.Scan.ExcludeTokens}}
+                                            <div class="flex items-center text-xs">
+                                                <span class="font-mono">{{.}}</span>
+                                            </div>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+
                 <div>
                     <h4 class="text-md font-medium mb-2">Ignored Tokens</h4>
                     <div class="bg-gray-50 rounded-lg p-4">
@@ -172,7 +312,7 @@
         <h3 class="text-lg font-medium">Update Configuration</h3>
     </div>
     <div class="p-6">
-        <p class="mb-4 text-gray-600">To update your configuration, edit the <code class="bg-gray-100 px-2 py-1 rounded">config.json</code> file and restart the monitor.</p>
+        <p class="mb-4 text-gray-600">To update your configuration, edit the <code class="bg-gray-100 px-2 py-1 rounded">config.json</code> file and restart the monitor, or use the admin interface to make changes.</p>
 
         <pre class="bg-gray-800 text-gray-200 p-4 rounded-lg overflow-x-auto whitespace-pre">
 {
@@ -192,7 +332,29 @@
         "enabled": {{.Config.Discord.Enabled}},
         "webhook_url": "{{.Config.Discord.WebhookURL}}",
         "channel_id": "{{.Config.Discord.ChannelID}}"
-    }
+    },
+    "scan": {
+        "scan_mode": "{{.Config.Scan.ScanMode}}",
+        "include_tokens": [
+{{range $index, $token := .Config.Scan.IncludeTokens}}            "{{$token}}"{{if lt $index (sub (len $.Config.Scan.IncludeTokens) 1)}},{{end}}
+{{end}}        ],
+        "exclude_tokens": [
+{{range $index, $token := .Config.Scan.ExcludeTokens}}            "{{$token}}"{{if lt $index (sub (len $.Config.Scan.ExcludeTokens) 1)}},{{end}}
+{{end}}        ]
+    }{{if .Config.WalletConfigs}},
+    "wallet_configs": {
+{{range $wallet, $config := .Config.WalletConfigs}}        "{{$wallet}}": {
+            "scan": {
+                "scan_mode": "{{$config.Scan.ScanMode}}",
+                "include_tokens": [
+{{range $index, $token := $config.Scan.IncludeTokens}}                    "{{$token}}"{{if lt $index (sub (len $config.Scan.IncludeTokens) 1)}},{{end}}
+{{end}}                ],
+                "exclude_tokens": [
+{{range $index, $token := $config.Scan.ExcludeTokens}}                    "{{$token}}"{{if lt $index (sub (len $config.Scan.ExcludeTokens) 1)}},{{end}}
+{{end}}                ]
+            }
+        }{{if not (isLastKey $.Config.WalletConfigs $wallet)}},{{end}}
+{{end}}    }{{end}}
 }
 </pre>
     </div>
@@ -206,4 +368,16 @@
 
 {{define "sub"}}
   {{sub . .}}
+{{end}}
+
+{{define "isLastKey"}}
+  {{eq (lastKey .) .}}
+{{end}}
+
+{{define "lastKey"}}
+  {{$last := ""}}
+  {{range $k, $v := .}}
+    {{$last = $k}}
+  {{end}}
+  {{$last}}
 {{end}}

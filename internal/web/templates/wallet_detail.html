@@ -55,7 +55,7 @@
     </div>
     <div class="p-6">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full divide-y divide-gray-200" id="token-table">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
@@ -74,6 +74,7 @@
     </div>
 </div>
 
+<script src="/static/js/table-sort.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const walletAddress = '{{.Address}}';
@@ -99,6 +100,24 @@
             .then(wallet => {
                 renderWalletDetails(wallet);
                 initTokenSearch();
+
+                // Assuming the table has an ID of 'token-table'
+                if (document.getElementById('token-table')) {
+                    new TableSorter('token-table', {
+                        initialColumn: 1, // Sort by token name initially
+                        initialDirection: 'asc'
+                    });
+                }
+
+                // Add data-sort-value attributes to any cells that need special sort handling
+                document.querySelectorAll('.token-balance').forEach(cell => {
+                    // Extract the raw number for sorting
+                    const balanceText = cell.textContent;
+                    const numericValue = parseFloat(balanceText.replace(/[^0-9.-]+/g, ""));
+                    if (!isNaN(numericValue)) {
+                        cell.setAttribute('data-sort-value', numericValue);
+                    }
+                });
             })
             .catch(error => console.error('Error fetching wallet details:', error));
     });
