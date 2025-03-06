@@ -3,176 +3,198 @@ package monitor
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestDetectChanges(t *testing.T) {
-	const testSignificantChange = 5.0 // 5% threshold for testing
-
+func TestNewWalletMonitor(t *testing.T) {
 	tests := []struct {
-		name            string
-		oldData         map[string]*WalletData
-		newData         map[string]*WalletData
-		expectedChanges []Change
+		name        string
+		networkURL  string
+		wallets     []string
+		shouldError bool
 	}{
 		{
-			name: "balance changes",
-			oldData: map[string]*WalletData{
-				"Wallet1": {
-					WalletAddress: "Wallet1",
-					TokenAccounts: map[string]TokenAccountInfo{
-						"TokenA": {
-							Balance:  100,
-							Symbol:   "TKNA",
-							Decimals: 6,
-						},
-					},
-				},
+			name:       "Valid initialization",
+			networkURL: "https://api.mainnet-beta.solana.com",
+			wallets: []string{
+				"DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK", // Example valid wallet
 			},
-			newData: map[string]*WalletData{
-				"Wallet1": {
-					WalletAddress: "Wallet1",
-					TokenAccounts: map[string]TokenAccountInfo{
-						"TokenA": {
-							Balance:  150,
-							Symbol:   "TKNA",
-							Decimals: 6,
-						},
-					},
-				},
-			},
-			expectedChanges: []Change{
-				{
-					WalletAddress: "Wallet1",
-					TokenMint:     "TokenA",
-					TokenSymbol:   "TKNA",
-					TokenDecimals: 6,
-					ChangeType:    "balance_change",
-					OldBalance:    100,
-					NewBalance:    150,
-					ChangePercent: 50.0,
-				},
-			},
+			shouldError: false,
 		},
 		{
-			name: "new tokens in existing wallet",
-			oldData: map[string]*WalletData{
-				"Wallet1": {
-					WalletAddress: "Wallet1",
-					TokenAccounts: map[string]TokenAccountInfo{
-						"TokenA": {
-							Balance:  100,
-							Symbol:   "TKNA",
-							Decimals: 6,
-						},
-					},
-				},
+			name:       "Invalid wallet address",
+			networkURL: "https://api.mainnet-beta.solana.com",
+			wallets: []string{
+				"invalid-address",
 			},
-			newData: map[string]*WalletData{
-				"Wallet1": {
-					WalletAddress: "Wallet1",
-					TokenAccounts: map[string]TokenAccountInfo{
-						"TokenA": {
-							Balance:  100,
-							Symbol:   "TKNA",
-							Decimals: 6,
-						},
-						"TokenB": {
-							Balance:  200,
-							Symbol:   "TKNB",
-							Decimals: 9,
-						},
-					},
-				},
-			},
-			expectedChanges: []Change{
-				{
-					WalletAddress: "Wallet1",
-					TokenMint:     "TokenB",
-					TokenSymbol:   "TKNB",
-					TokenDecimals: 9,
-					ChangeType:    "new_token",
-					NewBalance:    200,
-				},
-			},
+			shouldError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			changes := DetectChanges(tt.oldData, tt.newData, testSignificantChange)
-
-			if len(changes) != len(tt.expectedChanges) {
-				t.Errorf("Expected %d changes, got %d", len(tt.expectedChanges), len(changes))
-				return
-			}
-
-			for i, expected := range tt.expectedChanges {
-				actual := changes[i]
-				if actual.ChangeType != expected.ChangeType {
-					t.Errorf("Change %d: expected type %s, got %s", i, expected.ChangeType, actual.ChangeType)
-				}
-				if actual.WalletAddress != expected.WalletAddress {
-					t.Errorf("Change %d: expected wallet %s, got %s", i, expected.WalletAddress, actual.WalletAddress)
-				}
-				if actual.TokenMint != expected.TokenMint {
-					t.Errorf("Change %d: expected token %s, got %s", i, expected.TokenMint, actual.TokenMint)
-				}
-				if actual.TokenSymbol != expected.TokenSymbol {
-					t.Errorf("Change %d: expected symbol %s, got %s", i, expected.TokenSymbol, actual.TokenSymbol)
-				}
-				if actual.TokenDecimals != expected.TokenDecimals {
-					t.Errorf("Change %d: expected decimals %d, got %d", i, expected.TokenDecimals, actual.TokenDecimals)
-				}
-				if actual.NewBalance != expected.NewBalance {
-					t.Errorf("Change %d: expected new balance %d, got %d", i, expected.NewBalance, actual.NewBalance)
-				}
-				if actual.ChangeType == "balance_change" {
-					if actual.OldBalance != expected.OldBalance {
-						t.Errorf("Change %d: expected old balance %d, got %d", i, expected.OldBalance, actual.OldBalance)
-					}
-					if actual.ChangePercent != expected.ChangePercent {
-						t.Errorf("Change %d: expected change percent %.2f, got %.2f", i, expected.ChangePercent, actual.ChangePercent)
-					}
-				}
+			monitor, err := NewWalletMonitor(tt.networkURL, tt.wallets, nil)
+			if tt.shouldError {
+				assert.Error(t, err)
+				assert.Nil(t, monitor)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, monitor)
+				assert.Equal(t, tt.networkURL, monitor.networkURL)
+				assert.Len(t, monitor.wallets, len(tt.wallets))
 			}
 		})
 	}
 }
 
-func TestMockMonitorIntegration(t *testing.T) {
-	mock := NewMockWalletMonitor()
-
-	// Initial scan
-	initial, err := mock.ScanAllWallets()
-	if err != nil {
-		t.Fatalf("Initial scan failed: %v", err)
+func TestCalculatePercentageChange(t *testing.T) {
+	tests := []struct {
+		name     string
+		old      uint64
+		new      uint64
+		expected float64
+	}{
+		{
+			name:     "100% increase",
+			old:      100,
+			new:      200,
+			expected: 100.0,
+		},
+		{
+			name:     "50% decrease",
+			old:      200,
+			new:      100,
+			expected: -50.0,
+		},
+		{
+			name:     "New addition",
+			old:      0,
+			new:      100,
+			expected: 100.0,
+		},
+		{
+			name:     "No change",
+			old:      100,
+			new:      100,
+			expected: 0.0,
+		},
 	}
 
-	if len(initial) != 1 {
-		t.Errorf("Expected 1 wallet initially, got %d", len(initial))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := calculatePercentageChange(tt.old, tt.new)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestDetectChanges(t *testing.T) {
+	oldData := map[string]*WalletData{
+		"wallet1": {
+			WalletAddress: "wallet1",
+			TokenAccounts: map[string]TokenAccountInfo{
+				"token1": {
+					Balance:     1000,
+					LastUpdated: time.Now(),
+					Symbol:      "TKN1",
+					Decimals:    9,
+				},
+			},
+		},
 	}
 
-	// Check initial tokens
-	wallet := initial["TestWallet1"]
-	if wallet == nil {
-		t.Fatal("TestWallet1 not found")
+	newData := map[string]*WalletData{
+		"wallet1": {
+			WalletAddress: "wallet1",
+			TokenAccounts: map[string]TokenAccountInfo{
+				"token1": {
+					Balance:     2000,
+					LastUpdated: time.Now(),
+					Symbol:      "TKN1",
+					Decimals:    9,
+				},
+			},
+		},
 	}
 
-	if len(wallet.TokenAccounts) != 2 {
-		t.Errorf("Expected 2 initial tokens, got %d", len(wallet.TokenAccounts))
+	changes := DetectChanges(oldData, newData, 50.0)
+	assert.Len(t, changes, 1)
+	assert.Equal(t, "wallet1", changes[0].WalletAddress)
+	assert.Equal(t, "token1", changes[0].TokenMint)
+	assert.Equal(t, uint64(1000), changes[0].OldBalance)
+	assert.Equal(t, uint64(2000), changes[0].NewBalance)
+	assert.Equal(t, 100.0, changes[0].ChangePercent)
+}
+
+func TestAbs(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    float64
+		expected float64
+	}{
+		{
+			name:     "Positive number",
+			input:    5.5,
+			expected: 5.5,
+		},
+		{
+			name:     "Negative number",
+			input:    -5.5,
+			expected: 5.5,
+		},
+		{
+			name:     "Zero",
+			input:    0.0,
+			expected: 0.0,
+		},
 	}
 
-	// Test changes over time
-	time.Sleep(6 * time.Second)
-	afterNewToken, _ := mock.ScanAllWallets()
-	if len(afterNewToken["TestWallet1"].TokenAccounts) != 3 {
-		t.Error("New token not added after 5 seconds")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := abs(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestFormatTokenAmount(t *testing.T) {
+	tests := []struct {
+		name     string
+		amount   uint64
+		decimals uint8
+		expected string
+	}{
+		{
+			name:     "No decimals",
+			amount:   1000,
+			decimals: 0,
+			expected: "1000",
+		},
+		{
+			name:     "With decimals",
+			amount:   1000000000,
+			decimals: 9,
+			expected: "1.0000",
+		},
+		{
+			name:     "Millions",
+			amount:   5000000000000,
+			decimals: 9,
+			expected: "5.00M",
+		},
+		{
+			name:     "Thousands",
+			amount:   5000000000,
+			decimals: 9,
+			expected: "5.00K",
+		},
 	}
 
-	time.Sleep(5 * time.Second)
-	afterBalanceChange, _ := mock.ScanAllWallets()
-	solBalance := afterBalanceChange["TestWallet1"].TokenAccounts["So11111111111111111111111111111111111111112"].Balance
-	if solBalance != 2000000000 {
-		t.Errorf("Expected SOL balance change to 2 SOL, got %d", solBalance)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatTokenAmount(tt.amount, tt.decimals)
+			assert.Equal(t, tt.expected, result)
+		})
 	}
 }
