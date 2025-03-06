@@ -6,6 +6,7 @@ Solana Insider Monitor is highly configurable to suit your monitoring needs. Thi
 
 Solana Insider Monitor uses a JSON configuration file. By default, it looks for `config.json` in the current directory.
 
+
 Here's the complete configuration file structure with all available options:
 
 ```json
