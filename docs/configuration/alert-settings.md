@@ -6,6 +6,7 @@ This guide explains how to configure alert thresholds and settings for Solana In
 
 Alerts in Solana Insider Monitor are highly configurable. You can adjust the following settings:
 
+
 ### Minimum Balance
 
 The `minimum_balance` setting specifies the minimum token balance (in token units) required to trigger alerts. Tokens with balances below this threshold won't generate alerts, even if they experience significant changes.
