@@ -1,11 +1,21 @@
 # Binaries and build output
 /bin/
+bin/
 /dist/
+dist/
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+
+# Compiled Go binaries - ignore binaries that match their containing directory name
+**/*/main
+**/*/*.bin
+
+# Specific binaries in perftest and other directories
+**/perftest/perftest
+**/server/server
 
 # Test binary, built with `go test -c`
 *.test
