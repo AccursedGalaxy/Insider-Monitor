@@ -6,9 +6,6 @@ repo_name: AccursedGalaxy/Insider-Monitor
 site_dir: site
 use_directory_urls: false
 
-# Add this to generate index.html instead of index/
-strict: true
-
 theme:
   name: material
   features:
