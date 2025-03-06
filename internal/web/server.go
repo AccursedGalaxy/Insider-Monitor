@@ -156,6 +156,34 @@ func (s *Server) Start() error {
 		"sub": func(a, b int) int {
 			return a - b
 		},
+		"lastKey": func(m interface{}) string {
+			var last string
+			switch v := m.(type) {
+			case map[string]interface{}:
+				for k := range v {
+					last = k
+				}
+			case map[string]config.WalletConfig:
+				for k := range v {
+					last = k
+				}
+			}
+			return last
+		},
+		"isLastKey": func(m interface{}, key string) bool {
+			last := ""
+			switch v := m.(type) {
+			case map[string]interface{}:
+				for k := range v {
+					last = k
+				}
+			case map[string]config.WalletConfig:
+				for k := range v {
+					last = k
+				}
+			}
+			return last == key
+		},
 	}
 
 	// First parse all templates
