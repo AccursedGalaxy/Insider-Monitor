@@ -23,5 +23,25 @@
             "AnotherTokenAddress"
         ],
         "exclude_tokens": []
+    },
+    "wallet_configs": {
+        "CvQk2xkXtiMj2JqqVx1YZkeSqQ7jyQkNqqjeNE1jPTfc": {
+            "scan": {
+                "scan_mode": "whitelist",
+                "include_tokens": [
+                    "SpecificTokenForThisWallet"
+                ],
+                "exclude_tokens": []
+            }
+        },
+        "FjmRj8y9xfDaj5Aygq88t5jAFbpxrbZ16JNPPG1sx9FQ": {
+            "scan": {
+                "scan_mode": "blacklist",
+                "include_tokens": [],
+                "exclude_tokens": [
+                    "TokenToExcludeForThisWallet"
+                ]
+            }
+        }
     }
 }
