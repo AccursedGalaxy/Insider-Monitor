@@ -33,7 +33,7 @@ Create alert management in the UI
 - [ ] /developer/building.md has not yet been created.
 - [ ] /developer/testing.md has not yet been created.
 
-- [ ] better seo for the homepage
+- [x] better seo for the homepage
 
 - [ ] Consider changing the name form "Insider Monitor" to "Solana Monitor"
         - But I don't konw if this is a good idea and if I want to add other chains in the future.

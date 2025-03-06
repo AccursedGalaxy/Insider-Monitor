@@ -68,6 +68,13 @@ Allow setting different alert thresholds for different wallets:
 }
 ```
 
+### Scan System Improvement
+Re introduce feature to allow different scanning modes.
+
+all - scan all tokens for selected wallets
+whitelist - only scan whitelisted tokens for selected wallets
+blacklist - scan all tokens for selected wallets apart from blacklisted ones
+
 ### Alert System Improvements
 
 #### Multiple Configuration Profiles

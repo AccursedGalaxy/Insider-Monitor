@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -30,7 +31,7 @@ type WalletMonitor struct {
 	}
 }
 
-func NewWalletMonitor(networkURL string, wallets []string) (*WalletMonitor, error) {
+func NewWalletMonitor(networkURL string, wallets []string, options interface{}) (*WalletMonitor, error) {
 	client := rpc.NewWithCustomRPCClient(rpc.NewWithLimiter(
 		networkURL,
 		rate.Every(time.Second/4),
@@ -194,50 +195,25 @@ func abs(x float64) float64 {
 	return x
 }
 
-func (w *WalletMonitor) checkConnection() error {
-	// Try to get slot number as a simple connection test
-	_, err := w.client.GetSlot(context.Background(), rpc.CommitmentFinalized)
-	w.isConnected = err == nil
-	return err
-}
-
-// Update ScanAllWallets to handle batches
-func (w *WalletMonitor) ScanAllWallets() (map[string]*WalletData, error) {
-	// Check connection first
-	if err := w.checkConnection(); err != nil {
-		return nil, fmt.Errorf("connection check failed: %w", err)
+// formatTokenAmount formats a token amount based on its decimals and adds appropriate suffix
+func formatTokenAmount(amount uint64, decimals uint8) string {
+	if decimals == 0 {
+		return fmt.Sprintf("%d", amount)
 	}
 
-	results := make(map[string]*WalletData)
-	batchSize := 2
+	// Convert to float with proper decimal places
+	divisor := math.Pow10(int(decimals))
+	value := float64(amount) / divisor
 
-	for i := 0; i < len(w.wallets); i += batchSize {
-		end := i + batchSize
-		if end > len(w.wallets) {
-			end = len(w.wallets)
-		}
-
-		log.Printf("Processing wallets %d-%d of %d", i+1, end, len(w.wallets))
-
-		// Process batch
-		for _, wallet := range w.wallets[i:end] {
-			data, err := w.GetWalletData(wallet)
-			if err != nil {
-				log.Printf("error scanning wallet %s: %v", wallet.String(), err)
-				continue
-			}
-			results[wallet.String()] = data
-		}
-
-		// Larger wait between batches
-		if end < len(w.wallets) {
-			waitTime := 3 * time.Second
-			log.Printf("Waiting %v before next batch...", waitTime)
-			time.Sleep(waitTime)
-		}
+	// Format based on size
+	if value >= 1000000 {
+		return fmt.Sprintf("%.2fM", value/1000000)
+	} else if value >= 1000 {
+		return fmt.Sprintf("%.2fK", value/1000)
 	}
 
-	return results, nil
+	// Regular formatting for smaller numbers (show 4 decimal places)
+	return fmt.Sprintf("%.4f", value)
 }
 
 func DetectChanges(oldData, newData map[string]*WalletData, significantChange float64) []Change {
@@ -359,4 +335,50 @@ func (m *WalletMonitor) RemoveWallet(address string) {
 	if m.walletData != nil {
 		delete(m.walletData, address)
 	}
+}
+
+func (w *WalletMonitor) checkConnection() error {
+	// Try to get slot number as a simple connection test
+	_, err := w.client.GetSlot(context.Background(), rpc.CommitmentFinalized)
+	w.isConnected = err == nil
+	return err
+}
+
+// ScanAllWallets scans all wallets and returns their data
+func (w *WalletMonitor) ScanAllWallets() (map[string]*WalletData, error) {
+	// Check connection first
+	if err := w.checkConnection(); err != nil {
+		return nil, fmt.Errorf("connection check failed: %w", err)
+	}
+
+	results := make(map[string]*WalletData)
+	batchSize := 2
+
+	for i := 0; i < len(w.wallets); i += batchSize {
+		end := i + batchSize
+		if end > len(w.wallets) {
+			end = len(w.wallets)
+		}
+
+		log.Printf("Processing wallets %d-%d of %d", i+1, end, len(w.wallets))
+
+		// Process batch
+		for _, wallet := range w.wallets[i:end] {
+			data, err := w.GetWalletData(wallet)
+			if err != nil {
+				log.Printf("error scanning wallet %s: %v", wallet.String(), err)
+				continue
+			}
+			results[wallet.String()] = data
+		}
+
+		// Larger wait between batches
+		if end < len(w.wallets) {
+			waitTime := 3 * time.Second
+			log.Printf("Waiting %v before next batch...", waitTime)
+			time.Sleep(waitTime)
+		}
+	}
+
+	return results, nil
 }
