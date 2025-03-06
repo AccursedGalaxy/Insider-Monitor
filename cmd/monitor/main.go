@@ -60,6 +60,28 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to create wallet monitor: %v", err)
 		}
+
+		// Configure scan settings if using the real monitor
+		if walletMonitor, ok := scanner.(*monitor.WalletMonitor); ok {
+			// Set global scan config
+			walletMonitor.SetGlobalScanConfig(
+				cfg.Scan.ScanMode,
+				cfg.Scan.IncludeTokens,
+				cfg.Scan.ExcludeTokens,
+			)
+
+			// Set per-wallet scan configs if defined
+			for walletAddr, walletCfg := range cfg.WalletConfigs {
+				if walletCfg.Scan != nil {
+					walletMonitor.SetScanConfig(
+						walletAddr,
+						walletCfg.Scan.ScanMode,
+						walletCfg.Scan.IncludeTokens,
+						walletCfg.Scan.ExcludeTokens,
+					)
+				}
+			}
+		}
 	}
 
 	// Initialize alerter

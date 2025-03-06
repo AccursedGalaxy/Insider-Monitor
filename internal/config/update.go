@@ -7,11 +7,25 @@ import (
 
 // UpdateRequest represents a request to update the configuration
 type UpdateRequest struct {
-	NetworkURL   *string        `json:"network_url,omitempty"`
-	Wallets      *[]string      `json:"wallets,omitempty"`
-	ScanInterval *string        `json:"scan_interval,omitempty"`
-	Alerts       *AlertsUpdate  `json:"alerts,omitempty"`
-	Discord      *DiscordUpdate `json:"discord,omitempty"`
+	NetworkURL    *string                        `json:"network_url,omitempty"`
+	Wallets       *[]string                      `json:"wallets,omitempty"`
+	ScanInterval  *string                        `json:"scan_interval,omitempty"`
+	Scan          *ScanConfigUpdate              `json:"scan,omitempty"`
+	WalletConfigs *map[string]WalletConfigUpdate `json:"wallet_configs,omitempty"`
+	Alerts        *AlertsUpdate                  `json:"alerts,omitempty"`
+	Discord       *DiscordUpdate                 `json:"discord,omitempty"`
+}
+
+// ScanConfigUpdate represents an update to scan configuration
+type ScanConfigUpdate struct {
+	IncludeTokens *[]string `json:"include_tokens,omitempty"`
+	ExcludeTokens *[]string `json:"exclude_tokens,omitempty"`
+	ScanMode      *string   `json:"scan_mode,omitempty"`
+}
+
+// WalletConfigUpdate represents an update to wallet-specific configuration
+type WalletConfigUpdate struct {
+	Scan *ScanConfigUpdate `json:"scan,omitempty"`
 }
 
 // AlertsUpdate represents an update to the alerts configuration
@@ -48,6 +62,80 @@ func (u *UpdateRequest) Apply(cfg *Config) error {
 			return err
 		}
 		cfg.ScanInterval = *u.ScanInterval
+	}
+
+	// Apply scan configuration update
+	if u.Scan != nil {
+		log.Printf("Updating global scan configuration")
+
+		if u.Scan.ScanMode != nil {
+			// Validate scan mode
+			mode := *u.Scan.ScanMode
+			if mode != "all" && mode != "whitelist" && mode != "blacklist" {
+				log.Printf("Invalid scan mode: %s, defaulting to 'all'", mode)
+				mode = "all"
+			}
+			cfg.Scan.ScanMode = mode
+		}
+
+		if u.Scan.IncludeTokens != nil {
+			cfg.Scan.IncludeTokens = *u.Scan.IncludeTokens
+		}
+
+		if u.Scan.ExcludeTokens != nil {
+			cfg.Scan.ExcludeTokens = *u.Scan.ExcludeTokens
+		}
+	}
+
+	// Apply wallet-specific configurations
+	if u.WalletConfigs != nil {
+		log.Printf("Updating wallet-specific configurations")
+
+		// Initialize the map if it doesn't exist
+		if cfg.WalletConfigs == nil {
+			cfg.WalletConfigs = make(map[string]WalletConfig)
+		}
+
+		// Process each wallet config update
+		for walletAddr, walletCfgUpdate := range *u.WalletConfigs {
+			// Get or create wallet config
+			walletCfg, exists := cfg.WalletConfigs[walletAddr]
+			if !exists {
+				walletCfg = WalletConfig{}
+			}
+
+			// Apply scan config update if provided
+			if walletCfgUpdate.Scan != nil {
+				// Create new scan config if it doesn't exist
+				if walletCfg.Scan == nil {
+					walletCfg.Scan = &ScanConfig{}
+				}
+
+				// Update scan mode if provided
+				if walletCfgUpdate.Scan.ScanMode != nil {
+					// Validate scan mode
+					mode := *walletCfgUpdate.Scan.ScanMode
+					if mode != "all" && mode != "whitelist" && mode != "blacklist" {
+						log.Printf("Invalid scan mode for wallet %s: %s, defaulting to 'all'", walletAddr, mode)
+						mode = "all"
+					}
+					walletCfg.Scan.ScanMode = mode
+				}
+
+				// Update include tokens if provided
+				if walletCfgUpdate.Scan.IncludeTokens != nil {
+					walletCfg.Scan.IncludeTokens = *walletCfgUpdate.Scan.IncludeTokens
+				}
+
+				// Update exclude tokens if provided
+				if walletCfgUpdate.Scan.ExcludeTokens != nil {
+					walletCfg.Scan.ExcludeTokens = *walletCfgUpdate.Scan.ExcludeTokens
+				}
+			}
+
+			// Update the wallet config in the main config
+			cfg.WalletConfigs[walletAddr] = walletCfg
+		}
 	}
 
 	// Apply alerts update

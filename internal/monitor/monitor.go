@@ -29,6 +29,14 @@ type WalletMonitor struct {
 	config       struct {
 		NetworkURL string
 	}
+	scanConfigs map[string]ScanConfigInfo // Maps wallet address to scan config
+}
+
+// ScanConfigInfo holds scan configuration details
+type ScanConfigInfo struct {
+	Mode          string   // "all", "whitelist", or "blacklist"
+	IncludeTokens []string // Tokens to include (if using whitelist)
+	ExcludeTokens []string // Tokens to exclude (if using blacklist)
 }
 
 func NewWalletMonitor(networkURL string, wallets []string, options interface{}) (*WalletMonitor, error) {
@@ -49,9 +57,10 @@ func NewWalletMonitor(networkURL string, wallets []string, options interface{}) 
 	}
 
 	return &WalletMonitor{
-		client:     client,
-		wallets:    pubKeys,
-		networkURL: networkURL,
+		client:      client,
+		wallets:     pubKeys,
+		networkURL:  networkURL,
+		scanConfigs: make(map[string]ScanConfigInfo),
 	}, nil
 }
 
@@ -118,9 +127,75 @@ func (w *WalletMonitor) getTokenAccountsWithRetry(wallet solana.PublicKey) (*rpc
 	return nil, fmt.Errorf("failed after %d retries: %w", maxRetries, lastErr)
 }
 
+// SetScanConfig sets scan configuration for a specific wallet
+func (w *WalletMonitor) SetScanConfig(walletAddr string, scanMode string, includeTokens, excludeTokens []string) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	w.scanConfigs[walletAddr] = ScanConfigInfo{
+		Mode:          scanMode,
+		IncludeTokens: includeTokens,
+		ExcludeTokens: excludeTokens,
+	}
+}
+
+// SetGlobalScanConfig applies the same scan configuration to all currently monitored wallets
+func (w *WalletMonitor) SetGlobalScanConfig(scanMode string, includeTokens, excludeTokens []string) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	for _, wallet := range w.wallets {
+		addr := wallet.String()
+		w.scanConfigs[addr] = ScanConfigInfo{
+			Mode:          scanMode,
+			IncludeTokens: includeTokens,
+			ExcludeTokens: excludeTokens,
+		}
+	}
+}
+
+// shouldIncludeToken determines if a token should be included based on the scan configuration
+func (w *WalletMonitor) shouldIncludeToken(walletAddr, tokenMint string) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	scanConfig, exists := w.scanConfigs[walletAddr]
+	if !exists {
+		return true // Default to including all tokens if no config exists
+	}
+
+	switch scanConfig.Mode {
+	case "whitelist":
+		// Only include tokens in the include list
+		for _, token := range scanConfig.IncludeTokens {
+			if token == tokenMint {
+				return true
+			}
+		}
+		return false
+
+	case "blacklist":
+		// Include all tokens except those in the exclude list
+		for _, token := range scanConfig.ExcludeTokens {
+			if token == tokenMint {
+				return false
+			}
+		}
+		return true
+
+	case "all", "": // Default or explicitly set to "all"
+		return true
+
+	default:
+		log.Printf("warning: unknown scan mode '%s' for wallet %s, defaulting to 'all'", scanConfig.Mode, walletAddr)
+		return true
+	}
+}
+
 func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, error) {
+	walletAddr := wallet.String()
 	walletData := &WalletData{
-		WalletAddress: wallet.String(),
+		WalletAddress: walletAddr,
 		TokenAccounts: make(map[string]TokenAccountInfo),
 		LastScanned:   time.Now(),
 	}
@@ -143,6 +218,13 @@ func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, err
 		// Only include accounts with positive balance
 		if tokenAccount.Amount > 0 {
 			mint := tokenAccount.Mint.String()
+
+			// Check if this token should be included based on scan config
+			if !w.shouldIncludeToken(walletAddr, mint) {
+				log.Printf("Token %s excluded by scan config for wallet %s", mint, walletAddr)
+				continue
+			}
+
 			walletData.TokenAccounts[mint] = TokenAccountInfo{
 				Balance:     tokenAccount.Amount,
 				LastUpdated: time.Now(),
@@ -152,7 +234,7 @@ func (w *WalletMonitor) GetWalletData(wallet solana.PublicKey) (*WalletData, err
 		}
 	}
 
-	log.Printf("Wallet %s: found %d token accounts", wallet.String(), len(walletData.TokenAccounts))
+	log.Printf("Wallet %s: found %d token accounts (after scan mode filtering)", wallet.String(), len(walletData.TokenAccounts))
 	return walletData, nil
 }
 

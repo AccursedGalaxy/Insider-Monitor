@@ -13,10 +13,12 @@ import (
 )
 
 type Config struct {
-	NetworkURL   string   `json:"network_url"`
-	Wallets      []string `json:"wallets"`
-	ScanInterval string   `json:"scan_interval"`
-	Alerts       struct {
+	NetworkURL    string                  `json:"network_url"`
+	Wallets       []string                `json:"wallets"`
+	ScanInterval  string                  `json:"scan_interval"`
+	Scan          ScanConfig              `json:"scan"`
+	WalletConfigs map[string]WalletConfig `json:"wallet_configs,omitempty"`
+	Alerts        struct {
 		MinimumBalance    float64  `json:"minimum_balance"`
 		SignificantChange float64  `json:"significant_change"`
 		IgnoreTokens      []string `json:"ignore_tokens"`
@@ -48,6 +50,11 @@ type DiscordConfig struct {
 	ChannelID  string `json:"channel_id"`
 }
 
+// WalletConfig holds wallet-specific configuration
+type WalletConfig struct {
+	Scan *ScanConfig `json:"scan,omitempty"` // Wallet-specific scan configuration
+}
+
 func (c *Config) Validate() error {
 	if c.NetworkURL == "" {
 		return errors.New("network URL is required")
@@ -55,6 +62,32 @@ func (c *Config) Validate() error {
 	if len(c.Wallets) == 0 {
 		return errors.New("at least one wallet address is required")
 	}
+
+	// Validate scan mode
+	if c.Scan.ScanMode != "" && c.Scan.ScanMode != "all" && c.Scan.ScanMode != "whitelist" && c.Scan.ScanMode != "blacklist" {
+		return fmt.Errorf("invalid scan mode: %s (must be 'all', 'whitelist', or 'blacklist')", c.Scan.ScanMode)
+	}
+
+	// Default to "all" if not set
+	if c.Scan.ScanMode == "" {
+		c.Scan.ScanMode = "all"
+	}
+
+	// Validate per-wallet configs
+	for wallet, walletCfg := range c.WalletConfigs {
+		if walletCfg.Scan != nil {
+			mode := walletCfg.Scan.ScanMode
+			if mode != "" && mode != "all" && mode != "whitelist" && mode != "blacklist" {
+				return fmt.Errorf("invalid scan mode for wallet %s: %s (must be 'all', 'whitelist', or 'blacklist')", wallet, mode)
+			}
+
+			// Default to "all" if not set
+			if walletCfg.Scan.ScanMode == "" {
+				walletCfg.Scan.ScanMode = "all"
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -69,6 +102,12 @@ func GetTestConfig() *Config {
 		NetworkURL:   rpc.DevNet_RPC,
 		Wallets:      TestWallets,
 		ScanInterval: "5s",
+		Scan: ScanConfig{
+			IncludeTokens: []string{},
+			ExcludeTokens: []string{},
+			ScanMode:      "all",
+		},
+		WalletConfigs: map[string]WalletConfig{},
 		Alerts: struct {
 			MinimumBalance    float64  `json:"minimum_balance"`
 			SignificantChange float64  `json:"significant_change"`
@@ -174,4 +213,17 @@ func (c *Config) Save() error {
 	}
 
 	return nil
+}
+
+// GetScanConfigForWallet returns the appropriate scan config for a wallet
+// If the wallet has a specific config, it returns that, otherwise the global config
+func (c *Config) GetScanConfigForWallet(walletAddress string) ScanConfig {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if walletCfg, exists := c.WalletConfigs[walletAddress]; exists && walletCfg.Scan != nil {
+		return *walletCfg.Scan
+	}
+
+	return c.Scan
 }

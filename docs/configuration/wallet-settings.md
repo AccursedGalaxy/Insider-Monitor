@@ -61,6 +61,79 @@ Periodically review your wallet list to:
 - Add new wallets of interest
 - Verify address accuracy
 
+## Per-Wallet Scan Configuration
+
+Solana Insider Monitor supports configuring different scan modes for individual wallets, giving you fine-grained control over what tokens are monitored.
+
+### Scan Modes
+
+Each wallet can use one of three scan modes:
+
+- **all**: Monitor all tokens in the wallet (default)
+- **whitelist**: Only monitor specific tokens listed in `include_tokens`
+- **blacklist**: Monitor all tokens except those listed in `exclude_tokens`
+
+### Configuration Example
+
+Here's how to configure different scan modes for different wallets:
+
+```json
+{
+  "wallet_configs": {
+    "55kBY9yxqQzj2zxZqRkqENYq6R8PkXmn5GKyQN9YeVFr": {
+      "scan": {
+        "scan_mode": "whitelist",
+        "include_tokens": [
+          "So11111111111111111111111111111111111111112",  // SOL
+          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  // USDC
+        ],
+        "exclude_tokens": []
+      }
+    },
+    "DWuopnuSqYdBhCXqxfqjqzPGibnhkj6SQqFvgC4jkvjF": {
+      "scan": {
+        "scan_mode": "blacklist",
+        "include_tokens": [],
+        "exclude_tokens": [
+          "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",  // Dust token
+          "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"   // BONK
+        ]
+      }
+    }
+  }
+}
+```
+
+### Use Cases
+
+- **Whitelist Mode**: Use for wallets where you only care about specific tokens (e.g., stablecoins, major tokens)
+- **Blacklist Mode**: Use for wallets with many dust or airdrop tokens you want to ignore
+- **All Mode**: Use for comprehensive monitoring of all token activity
+
+### Global vs Per-Wallet Configuration
+
+You can set a global scan mode that applies to all wallets and override it for specific wallets:
+
+```json
+{
+  "scan": {
+    "scan_mode": "all",
+    "include_tokens": [],
+    "exclude_tokens": []
+  },
+  "wallet_configs": {
+    "55kBY9yxqQzj2zxZqRkqENYq6R8PkXmn5GKyQN9YeVFr": {
+      "scan": {
+        "scan_mode": "whitelist",
+        "include_tokens": ["So11111111111111111111111111111111111111112"]
+      }
+    }
+  }
+}
+```
+
+In this example, all wallets use "all" mode except for the specified wallet, which uses "whitelist" mode.
+
 ## Finding Wallet Addresses
 
 You can find Solana wallet addresses through various methods:

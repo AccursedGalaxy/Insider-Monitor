@@ -68,6 +68,23 @@ cp config.example.json config.json
         "YOUR_WALLET_ADDRESS_2"
     ],
     "scan_interval": "1m",
+    "scan": {
+        "scan_mode": "all",
+        "include_tokens": [],
+        "exclude_tokens": []
+    },
+    "wallet_configs": {
+        "YOUR_WALLET_ADDRESS_1": {
+            "scan": {
+                "scan_mode": "whitelist",
+                "include_tokens": [
+                    "So11111111111111111111111111111111111111112",
+                    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                ],
+                "exclude_tokens": []
+            }
+        }
+    },
     "alerts": {
         "minimum_balance": 1000,
         "significant_change": 0.20,
@@ -89,6 +106,12 @@ cp config.example.json config.json
   - Custom RPC endpoints are supported
 - `wallets`: Array of Solana wallet addresses to monitor for activity
 - `scan_interval`: Time between wallet scans (e.g., "30s", "1m", "5m")
+- `scan`: Global scan configuration applied to all wallets by default
+  - `scan_mode`: Token filtering mode ("all", "whitelist", or "blacklist")
+  - `include_tokens`: Array of token addresses to include (used with "whitelist" mode)
+  - `exclude_tokens`: Array of token addresses to exclude (used with "blacklist" mode)
+- `wallet_configs`: Per-wallet specific configurations
+  - `scan`: Wallet-specific scan settings that override global scan settings
 - `alerts`:
   - `minimum_balance`: Minimum token balance to trigger alerts
   - `significant_change`: Percentage change to trigger alerts (0.20 = 20%)
@@ -97,6 +120,16 @@ cp config.example.json config.json
   - `enabled`: Set to true to enable Discord wallet notifications
   - `webhook_url`: Discord webhook URL
   - `channel_id`: Discord channel ID for alerts
+
+### Scan Modes
+
+The monitor supports three different scanning modes to control which tokens are monitored:
+
+- **all**: Monitor all tokens in the wallet (default)
+- **whitelist**: Only monitor tokens specified in the `include_tokens` list
+- **blacklist**: Monitor all tokens except those in the `exclude_tokens` list
+
+You can set a global scan mode that applies to all wallets and/or configure different scan modes for individual wallets using the `wallet_configs` setting.
 
 ### Running the Solana Wallet Monitor
 

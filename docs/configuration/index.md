@@ -17,6 +17,23 @@ Here's the complete configuration file structure with all available options:
         "WALLET_ADDRESS_2"
     ],
     "scan_interval": "1m",
+    "scan": {
+        "scan_mode": "all",
+        "include_tokens": [],
+        "exclude_tokens": []
+    },
+    "wallet_configs": {
+        "WALLET_ADDRESS_1": {
+            "scan": {
+                "scan_mode": "whitelist",
+                "include_tokens": [
+                    "TOKEN_MINT_ADDRESS_1",
+                    "TOKEN_MINT_ADDRESS_2"
+                ],
+                "exclude_tokens": []
+            }
+        }
+    },
     "alerts": {
         "minimum_balance": 1000,
         "significant_change": 0.20,
@@ -51,6 +68,14 @@ Here's the complete configuration file structure with all available options:
     List of Solana wallet addresses to monitor.
 
     [:octicons-arrow-right-24: Wallet Settings](wallet-settings.md)
+
+-   :material-filter:{ .lg .middle } __Scan Configuration__
+
+    ---
+
+    Control which tokens are monitored with scan modes.
+
+    [:octicons-arrow-right-24: Scan Configuration](scan-configuration.md)
 
 -   :material-bell-alert:{ .lg .middle } __Alerts__
 
@@ -106,6 +131,11 @@ You can override configuration file settings with environment variables:
     "network_url": "https://api.mainnet-beta.solana.com",
     "wallets": ["YOUR_WALLET_ADDRESS"],
     "scan_interval": "5m",
+    "scan": {
+        "scan_mode": "all",
+        "include_tokens": [],
+        "exclude_tokens": []
+    },
     "alerts": {
         "minimum_balance": 1000,
         "significant_change": 0.20,
@@ -119,7 +149,7 @@ You can override configuration file settings with environment variables:
 }
 ```
 
-### Advanced Discord Alerts
+### Advanced Configuration
 
 ```json
 {
@@ -129,6 +159,26 @@ You can override configuration file settings with environment variables:
         "WALLET_ADDRESS_2"
     ],
     "scan_interval": "1m",
+    "scan": {
+        "scan_mode": "blacklist",
+        "include_tokens": [],
+        "exclude_tokens": [
+            "DUST_TOKEN_ADDRESS_1",
+            "DUST_TOKEN_ADDRESS_2"
+        ]
+    },
+    "wallet_configs": {
+        "WALLET_ADDRESS_1": {
+            "scan": {
+                "scan_mode": "whitelist",
+                "include_tokens": [
+                    "So11111111111111111111111111111111111111112",
+                    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                ],
+                "exclude_tokens": []
+            }
+        }
+    },
     "alerts": {
         "minimum_balance": 500,
         "significant_change": 0.10,
@@ -168,5 +218,6 @@ When running with the `-web` flag, you can configure the monitor through the web
 
 - [Network Settings](network-settings.md) - Configuring network connections
 - [Wallet Settings](wallet-settings.md) - Managing wallet monitoring
+- [Scan Configuration](scan-configuration.md) - Controlling which tokens are monitored
 - [Alert Settings](alert-settings.md) - Customizing alert thresholds
 - [Discord Integration](discord-integration.md) - Setting up Discord notifications

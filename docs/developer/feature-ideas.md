@@ -69,11 +69,39 @@ Allow setting different alert thresholds for different wallets:
 ```
 
 ### Scan System Improvement
-Re introduce feature to allow different scanning modes.
+**IMPLEMENTED**
 
-all - scan all tokens for selected wallets
-whitelist - only scan whitelisted tokens for selected wallets
-blacklist - scan all tokens for selected wallets apart from blacklisted ones
+The scan system now supports three different scanning modes:
+- `all` - scan all tokens for selected wallets
+- `whitelist` - only scan whitelisted tokens for selected wallets
+- `blacklist` - scan all tokens for selected wallets apart from blacklisted ones
+
+The scan configuration can be set globally for all wallets or individually per wallet.
+
+Example configuration:
+```json
+{
+  "scan": {
+    "scan_mode": "all",
+    "include_tokens": [],
+    "exclude_tokens": []
+  },
+  "wallet_configs": {
+    "52C9T2T7JRojtxumYnYZhyUmrN7kqzvCLc4Ksvjk7TxD": {
+      "scan": {
+        "scan_mode": "whitelist",
+        "include_tokens": [
+          "So11111111111111111111111111111111111111112",
+          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        ],
+        "exclude_tokens": []
+      }
+    }
+  }
+}
+```
+
+See `examples/scan_config_examples.json` for a complete example.
 
 ### Alert System Improvements
 

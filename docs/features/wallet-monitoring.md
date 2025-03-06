@@ -127,7 +127,60 @@ The web interface provides a more visual representation of wallet data:
 
 ### Token Filtering
 
-You can configure the monitor to ignore specific tokens:
+Solana Insider Monitor provides multiple ways to control which tokens are monitored:
+
+#### 1. Scan Modes
+
+The monitor supports three different scanning modes:
+
+- **all**: Monitor all tokens in the wallet (default)
+- **whitelist**: Only monitor tokens specified in the `include_tokens` list
+- **blacklist**: Monitor all tokens except those in the `exclude_tokens` list
+
+You can set a global scan mode for all wallets:
+
+```json
+{
+    "scan": {
+        "scan_mode": "blacklist",
+        "include_tokens": [],
+        "exclude_tokens": [
+            "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",  # USDC
+            "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"   # USDT
+        ]
+    }
+}
+```
+
+#### 2. Per-Wallet Scan Configuration
+
+You can also configure different scan modes for individual wallets:
+
+```json
+{
+    "wallet_configs": {
+        "55kBY9yxqQzj2zxZqRkqENYq6R8PkXmn5GKyQN9YeVFr": {
+            "scan": {
+                "scan_mode": "whitelist",
+                "include_tokens": [
+                    "So11111111111111111111111111111111111111112",  # SOL
+                    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
+                ],
+                "exclude_tokens": []
+            }
+        }
+    }
+}
+```
+
+This allows you to monitor different tokens for different wallets - for instance, you might want to:
+- Monitor only SOL and major tokens in your main wallet
+- Monitor all tokens except airdrops in a trading wallet
+- Monitor all tokens in a new or experimental wallet
+
+#### 3. Alert Ignore List
+
+For alerts only, you can specify tokens to ignore:
 
 ```json
 {
@@ -140,7 +193,7 @@ You can configure the monitor to ignore specific tokens:
 }
 ```
 
-This is useful for avoiding alerts on stablecoins or tokens that frequently change but aren't of interest.
+This differs from scan modes because these tokens are still monitored and recorded, but don't generate alerts.
 
 ### Minimum Balance Threshold
 

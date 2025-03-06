@@ -1,0 +1,46 @@
+{
+  "network_url": "https://api.mainnet-beta.solana.com",
+  "wallets": [
+    "52C9T2T7JRojtxumYnYZhyUmrN7kqzvCLc4Ksvjk7TxD",
+    "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+  ],
+  "scan_interval": "1m",
+  "scan": {
+    "scan_mode": "all",
+    "include_tokens": [],
+    "exclude_tokens": []
+  },
+  "wallet_configs": {
+    "52C9T2T7JRojtxumYnYZhyUmrN7kqzvCLc4Ksvjk7TxD": {
+      "scan": {
+        "scan_mode": "whitelist",
+        "include_tokens": [
+          "So11111111111111111111111111111111111111112",
+          "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        ],
+        "exclude_tokens": []
+      }
+    },
+    "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263": {
+      "scan": {
+        "scan_mode": "blacklist",
+        "include_tokens": [],
+        "exclude_tokens": [
+          "7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj",
+          "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
+        ]
+      }
+    }
+  },
+  "alerts": {
+    "minimum_balance": 1000,
+    "significant_change": 0.2,
+    "ignore_tokens": []
+  },
+  "discord": {
+    "enabled": false,
+    "webhook_url": "",
+    "channel_id": ""
+  }
+}
