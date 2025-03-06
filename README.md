@@ -5,6 +5,7 @@ Real-time monitoring tool for Solana blockchain wallets. Track wallet activities
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://accursedgalaxy.github.io/Insider-Monitor/)
 [![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/7vY9ZBPdya)
 [![License](https://img.shields.io/github/license/accursedgalaxy/insider-monitor)](LICENSE)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/AccursedGalaxy/Insider-Monitor?labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit%20Reviews)
 
 ## What is Solana Insider Monitor?
 
