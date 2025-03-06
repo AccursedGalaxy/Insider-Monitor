@@ -59,19 +59,24 @@ Solana Insider Monitor gives you real-time visibility into wallet activities on 
 - 🌐 **Web interface** for easy monitoring and configuration
 - 🔑 **Secure API** for programmatic access
 
-## Community
+<div class="grid cards" markdown>
 
-Join our Discord community to:
+-   :fontawesome-brands-discord:{ .lg .middle } __Community__
 
-- Get help with setup and configuration
-- Share feedback and suggestions
-- Connect with other users
-- Stay updated on new features and releases
+    ---
 
-[:fontawesome-brands-discord:{ .discord } Join our Discord Server](https://discord.gg/7vY9ZBPdya){ .md-button .md-button--primary }
+    Join our Discord community to connect with users,
+    get help, and stay updated on new features.
 
-## Open Source
+    [:fontawesome-brands-discord: Join Discord](https://discord.gg/7vY9ZBPdya){ .md-button .md-button--primary }
 
-Solana Insider Monitor is open source software. Contributions, issues, and feature requests are welcome!
+-   :fontawesome-brands-github:{ .lg .middle } __Open Source__
 
-[:fontawesome-brands-github:{ .github } View on GitHub](https://github.com/accursedgalaxy/insider-monitor){ .md-button }
+    ---
+
+    Solana Insider Monitor is open source software.
+    Contributions, issues, and feature requests welcome!
+
+    [:fontawesome-brands-github: View on GitHub](https://github.com/accursedgalaxy/insider-monitor){ .md-button .md-button--primary }
+
+</div>

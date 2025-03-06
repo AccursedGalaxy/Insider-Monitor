@@ -22,7 +22,7 @@ Add monitoring statistics and historical data
 Create alert management in the UI
 
 ## Documentation Stuff:
-- [ ] Better Align "Community" and "Open Source" sections on the hompage.
+- [x] Better Align "Community" and "Open Source" sections on the hompage.
         - Especially the "Join Discord" and "GitHub" buttons.
 
 - [ ] /discord-integration.html seems to have a missing image.
