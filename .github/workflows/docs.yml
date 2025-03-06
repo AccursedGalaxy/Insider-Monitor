@@ -53,8 +53,6 @@ jobs:
 
       - name: Deploy documentation
         run: |
-      - name: Deploy documentation
-        run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
 
@@ -68,7 +66,6 @@ jobs:
           touch site/.nojekyll
 
           # Ensure .nojekyll will be at the root of gh-pages branch
-          # This is the critical step!
           echo "Deploying with .nojekyll file..."
           mkdocs gh-deploy --force --verbose --config-file mkdocs.yml
 
@@ -85,6 +82,8 @@ jobs:
             git add .nojekyll
             git commit -m "Add .nojekyll file to root of gh-pages branch"
             git push origin gh-pages
+          fi
+
       - name: Debug Material Theme Installation
         run: |
           # Check if Material theme is installed correctly
