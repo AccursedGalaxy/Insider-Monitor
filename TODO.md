@@ -21,6 +21,12 @@ Implement additional dashboard controls
 Add monitoring statistics and historical data
 Create alert management in the UI
 
+## Alerts and Shizz:
+- [ ] Test Alerts To Console, Web and Discord
+- [ ] Make sure Different Alert Types work
+- [ ] Configurable Conditions for Alert Types
+- [ ] Send different types to different dicsord channels
+
 ## Web Dashboard Stuff:
 - [x] Order Tables by Values
 
